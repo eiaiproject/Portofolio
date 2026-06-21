@@ -1,5 +1,41 @@
 @import "tailwindcss";
 
+@theme {
+  /* Color Tokens */
+  --color-bg: #070A0F;
+  --color-surface: #0D1117;
+  --color-surface-raised: #111827;
+  --color-border: #263241;
+  --color-ink: #E5E7EB;
+  --color-muted: #9CA3AF;
+  --color-faint: #6B7280;
+  --color-accent: #7DD3FC;
+  --color-accent-dim: #164E63;
+  --color-accent-muted: #0E7490;
+  --color-warn: #FBBF24;
+  --color-warn-dim: #78350F;
+}
+
+@layer base {
+  /* Safe area support for notched devices */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Minimum text size for readability */
+  html {
+    font-size: 16px;
+  }
+
+  /* Better paragraph wrapping */
+  p {
+    text-wrap: pretty;
+  }
+}
+
 @layer utilities {
   .hide-scrollbar {
     -ms-overflow-style: none; /* IE and Edge */
@@ -7,5 +43,90 @@
   }
   .hide-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari and Opera */
+  }
+}
+
+/* Focus styles for interactive elements */
+details summary:focus-visible {
+  outline: 2px solid #7DD3FC;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Touch-friendly interactive elements */
+a, button, [role="button"] {
+  min-height: 44px;
+}
+
+/* Pointer-specific sizing */
+@media (pointer: coarse) {
+  a, button, [role="button"] {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+@media (pointer: fine) {
+  a, button, [role="button"] {
+    min-height: 36px;
+  }
+}
+
+/* CSS Containment for performance */
+section {
+  contain: layout style;
+}
+
+article {
+  contain: layout style;
+}
+
+/* Content visibility for below-fold performance */
+@media (prefers-reduced-motion: no-preference) {
+  #build-logs,
+  #workflow,
+  #how-to-work,
+  #contact {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
+  }
+}
+
+/* Scroll snap for mobile navigation */
+@media (max-width: 1023px) {
+  .hide-scrollbar {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .hide-scrollbar > li {
+    scroll-snap-align: start;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skip link focus */
+a:focus-visible {
+  outline: 2px solid #7DD3FC;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+  .border-\\[\\#263241\\] {
+    border-color: CanvasText;
+  }
+  .bg-\\[\\#0D1117\\] {
+    background-color: Canvas;
   }
 }
