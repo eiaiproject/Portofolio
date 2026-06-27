@@ -256,7 +256,7 @@ export default function Page() {
                 </h2>
               </div>
 
-              <div className="space-y-3 font-mono text-xs lg:text-sm">
+              <div className="space-y-3 font-mono text-xs lg:text-sm lab-status-rows">
                 {[
                   ["Started", "March 2026"],
                   ["Background", "Non-IT"],
@@ -502,39 +502,58 @@ export default function Page() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="space-y-4">
               {[
                 {
                   name: "Share",
                   icon: Terminal,
                   desc: "Tell me your rough concept",
+                  color: "#7DD3FC",
                 },
                 {
                   name: "Narrow",
                   icon: Hammer,
                   desc: "We pick one small thing to build",
+                  color: "#7DD3FC",
                 },
-                { name: "Build", icon: Code2, desc: "I prototype with AI" },
-                { name: "Fix", icon: Lightbulb, desc: "We improve what broke" },
+                {
+                  name: "Build",
+                  icon: Code2,
+                  desc: "I prototype with AI",
+                  color: "#7DD3FC",
+                },
+                {
+                  name: "Fix",
+                  icon: Lightbulb,
+                  desc: "We improve what broke",
+                  color: "#FBBF24",
+                },
                 {
                   name: "Deliver",
                   icon: CheckCircle2,
                   desc: "You get the finished product",
+                  color: "#7DD3FC",
                 },
               ].map((item, i) => (
                 <div
                   key={item.name}
-                  className="flex items-start gap-4 sm:flex-col sm:items-center sm:text-center"
+                  className="log-card bg-[#0D1117] border border-[#263241] rounded-sm flex items-center gap-4 p-4 relative"
                   style={{ "--stagger": i } as React.CSSProperties}
                 >
-                  <div className="w-12 h-12 shrink-0 rounded-sm bg-[#070A0F] border border-[#263241] flex items-center justify-center transition-colors duration-200 hover:border-[#164E63] hover:bg-[#0D1117]">
-                    <item.icon className="w-5 h-5 text-[#7DD3FC]" />
+                  <div className="absolute top-0 left-0 w-1 h-full rounded-sm" style={{ backgroundColor: item.color, opacity: 0.5 }} />
+                  <div className="w-10 h-10 shrink-0 rounded-sm bg-[#070A0F] border border-[#263241] flex items-center justify-center">
+                    <item.icon className="w-4 h-4" style={{ color: item.color }} />
                   </div>
-                  <div>
-                    <span className="font-semibold text-[#E5E7EB] text-sm font-sans">
-                      {item.name}
-                    </span>
-                    <p className="text-xs text-[#6B7280] font-sans mt-1">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-[#E5E7EB] text-sm font-sans">
+                        {item.name}
+                      </span>
+                      <span className="text-[10px] font-mono text-[#6B7280] tracking-wider">
+                        STEP_0{i + 1}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#9CA3AF] font-sans mt-0.5">
                       {item.desc}
                     </p>
                   </div>
