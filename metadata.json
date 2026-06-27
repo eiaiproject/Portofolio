@@ -1,6 +1,0 @@
-{
-  "name": "Anggie's Build Lab",
-  "description": "A digital lab notebook and build journal for Anggie, an AI-assisted builder.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

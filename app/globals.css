@@ -23,6 +23,12 @@
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    /* Graph-paper grid — reinforces lab-notebook physically */
+    background-image:
+      linear-gradient(rgba(38, 50, 65, 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(38, 50, 65, 0.12) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-color: #070A0F;
   }
 
   /* Minimum text size for readability */
@@ -51,6 +57,31 @@ details summary:focus-visible {
   outline: 2px solid #7DD3FC;
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* Nav active indicator animation */
+.nav-sidebar a {
+  transition: background-color 0.2s ease-out, border-color 0.2s ease-out, color 0.2s ease-out, transform 0.15s ease-out;
+}
+.nav-sidebar a:active {
+  transform: scale(0.98);
+}
+
+/* Process step entrance stagger */
+@media (prefers-reduced-motion: no-preference) {
+  #workflow [style*="--stagger"] {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: step-in 0.4s ease-out forwards;
+    animation-delay: calc(var(--stagger) * 80ms);
+  }
+}
+
+@keyframes step-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Touch-friendly interactive elements */
@@ -83,12 +114,83 @@ article {
 
 /* Content visibility for below-fold performance */
 @media (prefers-reduced-motion: no-preference) {
+  #status,
+  #honesty,
   #build-logs,
   #workflow,
-  #how-to-work,
   #contact {
     content-visibility: auto;
     contain-intrinsic-size: auto 600px;
+  }
+}
+
+/* Text wrapping utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* Hero entrance choreography */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-stagger > * {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: hero-reveal 0.5s ease-out forwards;
+  }
+  .hero-stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .hero-stagger > *:nth-child(2) { animation-delay: 120ms; }
+  .hero-stagger > *:nth-child(3) { animation-delay: 240ms; }
+  .hero-stagger > *:nth-child(4) { animation-delay: 360ms; }
+  .hero-card-reveal {
+    opacity: 0;
+    transform: translateX(20px);
+    animation: card-slide 0.6s ease-out 200ms forwards;
+  }
+}
+
+@keyframes hero-reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-slide {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Build log tinted backgrounds */
+.log-card-shipped {
+  background-color: rgba(125, 211, 252, 0.025);
+}
+.log-card-prototype {
+  background-color: rgba(251, 191, 36, 0.025);
+}
+.log-card-learning {
+  background-color: rgba(156, 163, 175, 0.02);
+}
+
+/* Card hover effects */
+@media (hover: hover) {
+  .skill-card {
+    transition: border-color 0.2s ease-out, background-color 0.2s ease-out;
+  }
+  .skill-card:hover {
+    border-color: #374151;
+    background-color: #111827;
+  }
+
+  .log-card {
+    transition: border-color 0.2s ease-out;
+  }
+  .log-card:hover {
+    border-color: #374151;
   }
 }
 

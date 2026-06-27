@@ -15,25 +15,23 @@ export function FadeIn({ children, className = "", delay = 0 }: FadeInProps) {
     const el = ref.current;
     if (!el) return;
 
-    // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
     if (prefersReducedMotion) {
-      el.classList.add("opacity-100", "translate-y-0");
-      el.classList.remove("opacity-0", "translate-y-4");
+      el.style.opacity = "1";
+      el.style.transform = "translateY(0)";
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Use requestAnimationFrame for smooth transition
           requestAnimationFrame(() => {
             el.style.transitionDelay = `${delay}ms`;
-            el.classList.add("opacity-100", "translate-y-0");
-            el.classList.remove("opacity-0", "translate-y-4");
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
           });
           observer.unobserve(el);
         }
@@ -48,7 +46,13 @@ export function FadeIn({ children, className = "", delay = 0 }: FadeInProps) {
   return (
     <div
       ref={ref}
-      className={`opacity-0 translate-y-4 transition-all duration-500 ease-out will-change-transform will-change-opacity ${className}`}
+      className={className}
+      style={{
+        opacity: 0,
+        transform: "translateY(16px)",
+        transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
+        willChange: "auto",
+      }}
     >
       {children}
     </div>

@@ -16,7 +16,22 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Anggie's Build Lab",
-  description: 'A digital lab notebook and build journal',
+  description: 'A digital lab notebook and build journal — learn by building with AI.',
+  openGraph: {
+    title: "Anggie's Build Lab",
+    description: 'A digital lab notebook and build journal — learn by building with AI.',
+    type: 'website',
+    siteName: "Anggie's Build Lab",
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Anggie's Build Lab",
+    description: 'A digital lab notebook and build journal — learn by building with AI.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export const viewport: Viewport = {
