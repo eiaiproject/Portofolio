@@ -10,7 +10,6 @@ import {
   Mail,
   Code2,
   ArrowRight,
-  PlayCircle,
   Check,
   FileTerminal,
   ChevronUp,
@@ -404,14 +403,6 @@ export default function Page() {
                     Lesson: Portfolio is not only design. It is positioning.
                   </p>
                   <div className="flex gap-3">
-                    <a
-                      href="https://anggieirawan.my.id"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#111827] hover:bg-[#151B23] border border-[#263241] text-[#E5E7EB] font-sans font-medium text-xs transition-colors rounded-sm"
-                    >
-                      <PlayCircle className="w-4 h-4 text-[#7DD3FC]" /> Demo
-                    </a>
                     <a
                       href="https://github.com/eiaiproject/Portofolio"
                       target="_blank"
