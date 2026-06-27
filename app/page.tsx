@@ -405,7 +405,7 @@ export default function Page() {
                   </p>
                   <div className="flex gap-3">
                     <a
-                      href="https://anggie.dev"
+                      href="https://anggieirawan.my.id"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-[#111827] hover:bg-[#151B23] border border-[#263241] text-[#E5E7EB] font-sans font-medium text-xs transition-colors rounded-sm"
