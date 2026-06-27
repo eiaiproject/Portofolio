@@ -11,6 +11,7 @@ import {
   Code2,
   ArrowRight,
   Check,
+  PlayCircle,
   FileTerminal,
   ChevronUp,
 } from "lucide-react";
@@ -441,6 +442,14 @@ export default function Page() {
                     Lesson: Local-first architecture teaches more about data than any API tutorial.
                   </p>
                   <div className="flex gap-3">
+                    <a
+                      href="https://expend.pages.dev"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#111827] hover:bg-[#151B23] border border-[#263241] text-[#E5E7EB] font-sans font-medium text-xs transition-colors rounded-sm"
+                    >
+                      <PlayCircle className="w-4 h-4 text-[#7DD3FC]" /> Demo
+                    </a>
                     <a
                       href="https://github.com/eiaiproject/Expend"
                       target="_blank"
