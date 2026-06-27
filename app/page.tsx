@@ -416,31 +416,40 @@ export default function Page() {
               </article>
 
               {/* BUILD LOG 002 */}
-              <article className="log-card log-card-prototype border border-[#263241] rounded-sm relative">
-                <div className="absolute top-0 left-0 w-full h-px bg-[#78350F]" />
+              <article className="log-card log-card-shipped border border-[#263241] rounded-sm relative">
+                <div className="absolute top-0 left-0 w-full h-px bg-[#164E63]" />
                 <div className="flex flex-wrap items-center justify-between border-b border-[#263241] bg-[#111827] px-4 py-2 gap-4">
                   <div className="flex items-center gap-3">
-                    <FileTerminal className="w-4 h-4 text-[#FBBF24]" />
+                    <FileTerminal className="w-4 h-4 text-[#7DD3FC]" />
                     <span className="text-xs font-mono text-[#E5E7EB]">
                       LOG_002.md
                     </span>
                   </div>
-                  <span className="inline-flex items-center px-2 py-0.5 bg-[#FBBF24]/10 text-[#FBBF24] font-mono text-[10px] border border-[#78350F] tracking-wider uppercase">
-                    Prototype
+                  <span className="inline-flex items-center px-2 py-0.5 bg-[#0E7490]/12 text-[#7DD3FC] font-mono text-[10px] border border-[#164E63] tracking-wider uppercase">
+                    Shipped
                   </span>
                 </div>
 
                 <div className="p-6 md:p-8 space-y-4">
                   <h3 className="text-xl text-[#E5E7EB] font-semibold font-sans">
-                    Expense Tracker Prototype
+                    Expend — PWA Expense Tracker
                   </h3>
                   <p className="text-sm text-[#9CA3AF] font-sans leading-relaxed">
-                    A simple app that tracks expenses using local storage. Built
-                    to understand how data changes on a page.
+                    A local-first expense tracker with wallet management, debt tracking, budget monitoring, and interactive charts. Offline-capable PWA with multi-language support. All data stored in IndexedDB — no accounts, no cloud, fully private.
                   </p>
                   <p className="text-sm text-[#FBBF24] font-medium font-sans leading-relaxed bg-[#FBBF24]/10 p-4 rounded-sm">
-                    Lesson: Small apps teach more than passive tutorials.
+                    Lesson: Local-first architecture teaches more about data than any API tutorial.
                   </p>
+                  <div className="flex gap-3">
+                    <a
+                      href="https://github.com/eiaiproject/Expend"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#111827] hover:bg-[#151B23] border border-[#263241] text-[#E5E7EB] font-sans font-medium text-xs transition-colors rounded-sm"
+                    >
+                      <Code2 className="w-4 h-4" /> Code
+                    </a>
+                  </div>
                 </div>
               </article>
 
