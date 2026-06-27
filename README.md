@@ -22,8 +22,8 @@ An AI-assisted portfolio website that documents the journey of learning to code 
 - **Lab Status** — Current learning context and availability
 - **Skills** — Honest breakdown of capabilities vs. learning areas
 - **Build Logs** — Documented experiments, failures, and lessons
-- **Workflow** — How I approach building with AI
-- **Collaboration** — How we work together on projects
+- **Process** — How we work together on projects
+- **Contact** — Get in touch for small projects
 
 ## Tech Stack
 
@@ -69,24 +69,32 @@ Output is in the `out/` directory.
 
 ```
 ├── app/
-│   ├── layout.tsx      # Root layout with fonts & metadata
-│   ├── page.tsx        # Main portfolio page
-│   └── globals.css     # Global styles & Tailwind config
+│   ├── layout.tsx        # Root layout with fonts & metadata
+│   ├── page.tsx          # Main portfolio page
+│   ├── not-found.tsx     # Custom 404 page
+│   └── globals.css       # Global styles, tokens & animations
 ├── components/
-│   ├── help-overlay.tsx  # Keyboard help modal
 │   ├── fade-in.tsx       # Scroll-triggered animation wrapper
+│   ├── help-overlay.tsx  # Keyboard shortcuts modal
 │   └── mobile-nav.tsx    # Mobile navigation drawer
+├── DESIGN.md             # Design system documentation
+├── PRODUCT.md            # Product context & goals
 └── package.json
 ```
 
 ## Features
 
 - **Responsive Design** — Mobile-first with desktop sidebar navigation
-- **Dark Theme** — Lab notebook aesthetic with cyan accent colors
-- **Smooth Animations** — Scroll-triggered fade-in effects
-- **Keyboard Navigation** — Press `?` for help overlay
+- **Dark Theme** — Lab notebook aesthetic with cyan accent, border-first depth
+- **Graph-Paper Background** — Faint grid lines reinforcing the notebook metaphor
+- **Scroll Progress Bar** — Cyan indicator showing page position
+- **Hero Entrance Choreography** — Staggered reveal animation on page load
+- **Build Log Artifacts** — Each log has a distinct tinted background (cyan/amber/gray)
+- **Keyboard Navigation** — Press `?` for help overlay, `Esc` to close, `Tab` to navigate
 - **Back to Top** — Quick scroll button on mobile
-- **Accessibility** — Skip links, ARIA labels, focus-visible states
+- **First-Visit Hint** — Toast showing keyboard shortcut on first mobile visit
+- **Accessibility** — Skip links, ARIA labels, focus-visible, reduced-motion, high-contrast mode
+- **Performance** — CSS containment, content-visibility, passive scroll listeners
 - **Fully Static** — No server, no SSR, no API routes, no env vars
 
 ## Available Scripts
@@ -95,7 +103,9 @@ Output is in the `out/` directory.
 |---------|-------------|
 | `npm run dev` | Start development server |
 | `npm run build` | Build static site to `out/` |
+| `npm start` | Serve production build |
 | `npm run lint` | Run ESLint |
+| `npm run clean` | Clean Next.js cache |
 
 ## Deployment
 
