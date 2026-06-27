@@ -104,7 +104,7 @@ export function MobileNav({ items, activeId }: MobileNavProps) {
       >
         <div className="flex items-center justify-between p-4 border-b border-[#263241]">
           <div className="flex items-center gap-3 font-mono text-[#7DD3FC] font-bold tracking-wider text-sm">
-            <Image src="/AI.svg" alt="" width={24} height={24} unoptimized className="w-6 h-6" aria-hidden="true" />
+            <Image src="/AI-logo.svg" alt="" width={24} height={24} unoptimized className="w-6 h-6" aria-hidden="true" />
             <span>Anggie</span>
           </div>
           <button

@@ -174,7 +174,7 @@ export default function Page() {
         <div className="flex items-center justify-between mb-12 font-mono text-[#7DD3FC] font-bold tracking-wider text-sm">
           <div className="flex items-center gap-3">
             <Image
-              src="/AI.svg"
+              src="/AI-logo.svg"
               alt=""
               width={24}
               height={24}
