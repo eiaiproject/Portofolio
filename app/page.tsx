@@ -433,13 +433,17 @@ export default function Page() {
 
                 <div className="p-6 md:p-8 space-y-4">
                   <h3 className="text-xl text-[#E5E7EB] font-semibold font-sans">
-                    Expend — PWA Expense Tracker
+                    Expend - PWA Expense & Debts Tracker
                   </h3>
                   <p className="text-sm text-[#9CA3AF] font-sans leading-relaxed">
-                    A local-first expense tracker with wallet management, debt tracking, budget monitoring, and interactive charts. Offline-capable PWA with multi-language support. All data stored in IndexedDB — no accounts, no cloud, fully private.
+                    A local-first expense tracker with wallet management, debt
+                    tracking, budget monitoring, and interactive charts.
+                    Offline-capable PWA with multi-language support. All data
+                    stored in IndexedDB. No accounts, no cloud, fully private.
                   </p>
                   <p className="text-sm text-[#FBBF24] font-medium font-sans leading-relaxed bg-[#FBBF24]/10 p-4 rounded-sm">
-                    Lesson: Local-first architecture teaches more about data than any API tutorial.
+                    Lesson: Local-first architecture teaches more about data
+                    than any API tutorial.
                   </p>
                   <div className="flex gap-3">
                     <a
@@ -549,9 +553,15 @@ export default function Page() {
                   className="log-card bg-[#0D1117] border border-[#263241] rounded-sm flex items-center gap-4 p-4 relative"
                   style={{ "--stagger": i } as React.CSSProperties}
                 >
-                  <div className="absolute top-0 left-0 w-1 h-full rounded-sm" style={{ backgroundColor: item.color, opacity: 0.5 }} />
+                  <div
+                    className="absolute top-0 left-0 w-1 h-full rounded-sm"
+                    style={{ backgroundColor: item.color, opacity: 0.5 }}
+                  />
                   <div className="w-10 h-10 shrink-0 rounded-sm bg-[#070A0F] border border-[#263241] flex items-center justify-center">
-                    <item.icon className="w-4 h-4" style={{ color: item.color }} />
+                    <item.icon
+                      className="w-4 h-4"
+                      style={{ color: item.color }}
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -605,7 +615,7 @@ export default function Page() {
                   title="Opens your email app to send a message"
                 >
                   <Mail className="w-4 h-4" />
-                  Email Anggie
+                  Reach Me
                 </a>
               </div>
             </div>
