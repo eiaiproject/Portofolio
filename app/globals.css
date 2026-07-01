@@ -17,6 +17,15 @@
 }
 
 @layer base {
+  /* System font stacks - professional, no network deps */
+  .font-sans {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  
+  .font-mono {
+    font-family: ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
   /* Safe area support for notched devices */
   body {
     padding-top: env(safe-area-inset-top);
@@ -197,18 +206,22 @@ article {
 /* Card hover effects */
 @media (hover: hover) {
   .skill-card {
-    transition: border-color 0.2s ease-out, background-color 0.2s ease-out;
+    transition: border-color 0.2s ease-out, background-color 0.2s ease-out, transform 0.2s ease-out, box-shadow 0.2s ease-out;
   }
   .skill-card:hover {
     border-color: #374151;
     background-color: #111827;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
   .log-card {
-    transition: border-color 0.2s ease-out;
+    transition: border-color 0.2s ease-out, transform 0.2s ease-out, box-shadow 0.2s ease-out;
   }
   .log-card:hover {
     border-color: #374151;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 }
 

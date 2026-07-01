@@ -1,35 +1,28 @@
 import type {Metadata, Viewport} from 'next';
-import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css'; // Global styles
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-});
+// ponytail: system fonts → no build-time network deps, still professional
+const fontVars = {
+  sans: '--font-sans',
+  mono: '--font-mono',
+};
 
 export const metadata: Metadata = {
-  title: "Anggie's Build Lab",
-  description: 'A digital lab notebook and build journal — learn by building with AI.',
+  title: 'Anggie Irawan - AI-Assisted Product Builder',
+  description: 'Portfolio of an AI-assisted builder turning rough ideas into landing pages, prototypes, dashboards, and small web apps through learning by shipping.',
   icons: {
     icon: '/AI-logo.svg',
   },
   openGraph: {
-    title: "Anggie's Build Lab",
-    description: 'A digital lab notebook and build journal — learn by building with AI.',
+    title: 'Anggie Irawan - AI-Assisted Product Builder',
+    description: 'Portfolio of an AI-assisted builder turning rough ideas into landing pages, prototypes, and small web apps.',
     type: 'website',
     siteName: "Anggie's Build Lab",
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Anggie's Build Lab",
-    description: 'A digital lab notebook and build journal — learn by building with AI.',
+    title: 'Anggie Irawan - AI-Assisted Product Builder',
+    description: 'Portfolio of an AI-assisted builder turning rough ideas into landing pages, prototypes, and small web apps.',
   },
   robots: {
     index: true,
@@ -45,11 +38,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} ${jetbrainsMono.variable}`}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
+    <html lang="en">
       <body className="font-sans bg-[#070A0F] text-[#E5E7EB] antialiased">
         <a
           href="#status"
