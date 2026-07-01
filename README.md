@@ -1,8 +1,8 @@
 <div align="center">
 
-# Anggie's Build Lab
+# Anggie Irawan - AI-Assisted Product Builder
 
-**A digital lab notebook and build journal — learn by building with AI.**
+**Turning rough ideas into simple working web products.**
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
@@ -10,20 +10,24 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1-06B6D4?logo=tailwindcss)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
+[Live Demo](https://anggieirawan.my.id) · [Contact Me](mailto:irawananggie@gmail.com)
+
 </div>
 
 ---
 
 ## Overview
 
-An AI-assisted portfolio website that documents the journey of learning to code from a non-IT background. Built as a personal build journal with a lab notebook aesthetic. Deployed on [Cloudflare Pages](https://pages.cloudflare.com) as a fully static site.
+A professional portfolio for an AI-assisted product builder who helps non-technical founders, small businesses, and solo makers turn rough ideas into simple working web products.
+
+Built from a non-IT background through learning by shipping real projects. Uses AI as a coding partner while directing product direction, testing flows, and deciding what ships.
 
 **Key sections:**
-- **Lab Status** — Current learning context and availability
-- **Skills** — Honest breakdown of capabilities vs. learning areas
-- **Build Logs** — Documented experiments, failures, and lessons
+- **Services** — What I can build for you (landing pages, MVPs, PWAs, dashboards)
+- **Skills** — Honest breakdown of capabilities vs. areas for growth
+- **Build Logs** — Documented projects with problem/solution/stack breakdown
 - **Process** — How we work together on projects
-- **Contact** — Get in touch for small projects
+- **Credibility** — Best fit, scope limits, and tech stack
 
 ## Tech Stack
 
@@ -89,7 +93,10 @@ Output is in the `out/` directory.
 - **Graph-Paper Background** — Faint grid lines reinforcing the notebook metaphor
 - **Scroll Progress Bar** — Cyan indicator showing page position
 - **Hero Entrance Choreography** — Staggered reveal animation on page load
+- **Service Cards** — Staggered fade-up entrance with icons and hover lift effect
 - **Build Log Artifacts** — Each log has a distinct tinted background (cyan/amber/gray)
+- **Case Study Format** — Problem/solution/stack/role breakdown for each project
+- **Hover Effects** — Subtle lift and shadow on cards for depth
 - **Keyboard Navigation** — Press `?` for help overlay, `Esc` to close, `Tab` to navigate
 - **Back to Top** — Quick scroll button on mobile
 - **First-Visit Hint** — Toast showing keyboard shortcut on first mobile visit
