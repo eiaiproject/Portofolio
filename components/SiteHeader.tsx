@@ -111,7 +111,7 @@ export default function SiteHeader() {
             <Menu size={24} weight="Outline" color="var(--ink)" />
           )}
         </button>
-        <ul id="primary-menu" className="nav-links" role="list">
+        <ul id="primary-menu" className="nav-links">
           {links.map(([id, label]) => (
             <li key={id}>
               <a href={`#${id}`} onClick={() => setOpen(false)}>

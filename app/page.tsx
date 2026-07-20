@@ -151,8 +151,7 @@ export default function Home() {
         <article className="project-content project-content-spaced reveal project-invert">
           <div className="editorial-copy">
             <span className="project-status">
-              <span className="project-status-dot" aria-hidden="true" />
-              Shipped
+              <span className="project-status-dot" aria-hidden="true" /> Shipped
             </span>
             <h3 className="section-title section-title-large project-name">
               Invois
@@ -211,8 +210,7 @@ export default function Home() {
         <article className="project-content reveal">
           <div className="editorial-copy">
             <span className="project-status">
-              <span className="project-status-dot" aria-hidden="true" />
-              Active Development
+              <span className="project-status-dot" aria-hidden="true" /> Active Development
             </span>
             <h3 className="section-title section-title-large project-name">
               Ledjer
