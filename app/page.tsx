@@ -18,7 +18,7 @@ function getMailto() {
 
 export default function Home() {
   const emailLinkRef = useRef<HTMLAnchorElement>(null);
-  const emailBtnRef = useRef<HTMLAnchorElement>(null);
+  const emailBtnRef = useRef<HTMLButtonElement>(null);
 
   /* ── Hydrate email links on mount only (spam obfuscation) ── */
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function Home() {
       emailLinkRef.current.href = mailto;
       emailLinkRef.current.textContent = email;
     }
-    if (emailBtnRef.current) emailBtnRef.current.href = mailto;
+    if (emailBtnRef.current) emailBtnRef.current.onclick = () => { window.location.href = mailto; };
   }, []);
 
   /* ── Scroll reveal (fade + slide) ── */
@@ -419,9 +419,9 @@ export default function Home() {
           SHIP V1.
         </h2>
         <div className="contact-actions">
-          <a ref={emailBtnRef} href="#" className="btn">
+          <button ref={emailBtnRef} className="btn" type="button">
             Reach Me <ArrowRight size={16} weight="Outline" />
-          </a>
+          </button>
         </div>
       </section>
 
