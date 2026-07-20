@@ -92,8 +92,7 @@ export default function Home() {
         <article className="project-content project-content-spaced reveal">
           <div className="editorial-copy">
             <span className="project-status">
-              <span className="project-status-dot" aria-hidden="true" />
-              Shipped
+              <span className="project-status-dot" aria-hidden="true" /> Shipped
             </span>
             <h3 className="section-title section-title-large project-name">
               Expend
@@ -420,7 +419,7 @@ export default function Home() {
           SHIP V1.
         </h2>
         <div className="contact-actions">
-          <a ref={emailBtnRef} className="btn">
+          <a ref={emailBtnRef} href="#" className="btn">
             Reach Me <ArrowRight size={16} weight="Outline" />
           </a>
         </div>
