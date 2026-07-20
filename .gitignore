@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+.DS_Store
+*.log
+.wrangler/
+DESIGN.md
+PRODUCT.md
+tsconfig.tsbuildinfo
+temp_ledjer/
+
