@@ -84,8 +84,8 @@ export default function Home() {
           <span>01 / Selected Work</span>
           <span>Build Log</span>
         </div>
-        <h2 id="work-heading" className="sr-only">
-          Selected Work
+        <h2 id="work-heading" className="section-title section-title-medium section-heading-narrow">
+          Selected Work.
         </h2>
 
         {/* ── Project 01: Expend ── */}
@@ -260,6 +260,64 @@ export default function Home() {
             />
             <span className="placeholder-text" style={{ display: "none" }}>
               [ Ledjer Screenshot ]
+            </span>
+          </div>
+        </article>
+
+        {/* ── Project 04: Zipto ── */}
+        <article className="project-content project-content-spaced reveal project-invert">
+          <div className="editorial-copy">
+            <span className="project-status">
+              <span className="project-status-dot" aria-hidden="true" /> Shipped
+            </span>
+            <h3 className="section-title section-title-large project-name">
+              Zipto
+            </h3>
+            <p className="project-subtitle">
+              ZIP to Markdown Converter
+            </p>
+            <p className="dropcap">
+              Developers, writers, and analysts often need to extract text from ZIP archives
+              without uploading sensitive files to a server. Zipto solves this by running
+              all conversion locally in the browser as a private, offline-first PWA.
+            </p>
+            <div className="project-highlights">
+              <span className="project-highlight">Local processing</span>
+              <span className="project-highlight">No upload</span>
+              <span className="project-highlight">Privacy-first</span>
+              <span className="project-highlight">Works offline</span>
+            </div>
+            <div className="project-lesson">
+              &ldquo;Web Workers make CPU-intensive file conversion viable in the browser
+              without blocking the UI or compromising on privacy.&rdquo;
+            </div>
+            <p className="project-tools">
+              Stack: React, TypeScript, Vite, Web Worker, fflate, Turndown, PapaParse, PWA
+            </p>
+            <a
+              href="https://zipto.pages.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="project-link"
+              aria-label="View Zipto live app, opens in a new tab"
+            >
+              View Live App <ArrowUpRight size={16} weight="Outline" />
+            </a>
+          </div>
+          <div className="visual-frame">
+            <img
+              src="/zipto-hero.png"
+              alt="Zipto app interface showing ZIP file upload and conversion controls"
+              loading="lazy"
+              onError={(e) => {
+                const img = e.currentTarget;
+                img.style.display = "none";
+                const placeholder = img.nextElementSibling as HTMLElement | null;
+                if (placeholder) placeholder.style.display = "block";
+              }}
+            />
+            <span className="placeholder-text" style={{ display: "none" }}>
+              [ Zipto Screenshot ]
             </span>
           </div>
         </article>

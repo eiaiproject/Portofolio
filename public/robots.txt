@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://anggieirawan.my.id/sitemap.xml

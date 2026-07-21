@@ -23,7 +23,7 @@ Portfolio for Anggie Irawan, an AI-assisted product builder who turns rough idea
 
 - **Editorial monograph aesthetic** — Cream background, high-contrast ink, serif display type
 - **Responsive, mobile-first layout** — Fixed header with collapsible navigation (iOS-safe)
-- **Project case studies** — Each project with problem, lesson, tech stack, and screenshot
+- **Project case studies** — Each project with problem, lesson, tech stack, and screenshot (Expend, Invois, Ledjer, Zipto)
 - **Scroll-reveal animations** — Sections fade in via IntersectionObserver
 - **Accessibility** — Skip link, ARIA labels, focus-visible outlines, reduced-motion support
 - **Fully static export** — Deployable to Cloudflare Pages, no server needed

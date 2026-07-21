@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- nav logo needs <img> for static export compatibility */
+
 import { useEffect, useRef, useState } from "react";
 import { Menu, CloseCircle } from "reicon-react";
 
@@ -95,7 +97,7 @@ export default function SiteHeader() {
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
         >
-          A Monograph
+          <img src="/AI-favicon.svg" alt="" className="nav-logo" aria-hidden="true" /> Monograph
         </a>
         <button
           type="button"
