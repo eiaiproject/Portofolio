@@ -10,8 +10,9 @@ interface SiteHeaderProps {
   current?: number;
   /** Index of the last sheet (the closing contact page) — nav links map to it. */
   lastPage?: number;
-  /** Called with the target page index (0 cover, 1 title, 2 about, 3 work, lastPage contact). */
-  onNavigate?: (page: number) => void;
+  /** Called with the target page index and mobile spread side
+      (0 = left plate, 1 = right text page). */
+  onNavigate?: (page: number, side: 0 | 1) => void;
 }
 
 export default function SiteHeader({
@@ -54,11 +55,11 @@ export default function SiteHeader({
   }, []);
 
   const links = [
-    { id: "about", label: "About", page: 2 },
-    { id: "work", label: "Work", page: 3 },
-    { id: "capabilities", label: "Capabilities", page: lastPage },
-    { id: "process", label: "Process", page: lastPage },
-    { id: "contact", label: "Contact", page: lastPage },
+    { id: "about", label: "About", page: 2, side: 1 },
+    { id: "work", label: "Work", page: 3, side: 0 },
+    { id: "capabilities", label: "Capabilities", page: lastPage, side: 0 },
+    { id: "process", label: "Process", page: lastPage, side: 0 },
+    { id: "contact", label: "Contact", page: lastPage, side: 1 },
   ] as const;
 
   const activeId =
@@ -70,10 +71,10 @@ export default function SiteHeader({
           ? "contact"
           : "work";
 
-  const go = (page: number) => (e: MouseEvent) => {
+  const go = (page: number, side: 0 | 1) => (e: MouseEvent) => {
     e.preventDefault();
     setOpen(false);
-    onNavigate?.(page);
+    onNavigate?.(page, side);
   };
 
   return (
@@ -86,7 +87,7 @@ export default function SiteHeader({
         aria-label="Primary navigation"
         data-open={open ? "true" : "false"}
       >
-        <a href="#book-main" className="nav-brand" onClick={go(0)}>
+        <a href="#book-main" className="nav-brand" onClick={go(0, 1)}>
           <img src="/AI-favicon.svg" alt="" className="nav-logo" aria-hidden="true" />{" "}
           Monograph
         </a>
@@ -106,13 +107,13 @@ export default function SiteHeader({
         </button>
         <ul id="primary-menu" className="nav-links">
           <div className="nav-links-list" role="none">
-            {links.map(({ id, label, page }) => (
+            {links.map(({ id, label, page, side }) => (
               <li key={id}>
                 <a
                   href={`#${id}`}
                   className={activeId === id ? "nav-active" : undefined}
                   aria-current={activeId === id ? "page" : undefined}
-                  onClick={go(page)}
+                  onClick={go(page, side)}
                 >
                   {label}
                 </a>

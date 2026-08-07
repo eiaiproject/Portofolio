@@ -219,7 +219,7 @@ All interactive elements (buttons, links, nav items, copy button) meet 44×44px 
 
 8 sheets stacked. `current` = number of flipped sheets (0…7). Sheet 0's front is the cover; sheet 7's front is the dark closing contact page. All sheets stay mounted — content remains crawlable.
 
-Each project is a **2-page spread** (real-book model): its text page is the sheet's front (right page), and its image plate is printed on the BACK of the previous sheet (left page) — so on desktop the spread shows `[plate] + [text]` together. On mobile only the right page is visible at a time; the text page carries its own small screenshot, and its content **scrolls inside the page frame** for comfortable reading — the book itself still fits the viewport, so the flip controls stay in reach.
+Each project is a **2-page spread** (real-book model): its text page is the sheet's front (right page), and its image plate is printed on the BACK of the previous sheet (left page) — so on desktop the spread shows `[plate] + [text]` together. On mobile (≤1023px) the 3D book is replaced by a flat slide viewer: for sheets 3–7 the **left page is shown first** (project plate, or the colophon on the final spread), a tap slides to the right (text) page, and the next tap flips to the following sheet — which again lands on its left page (incoming plate animates with a page-turn-in). Cover / title / manifesto (and contact) have no pageable left content and show only the text page; the opening plate of a project is what defaults into view. Content **scrolls inside the page frame**, and the slide keeps the whole book + controls in one viewport.
 
 The book opens to a **cream title page** (brand mockup: Playfair names, mono "PORTFOLIO EST. 2026" label, italic tagline with arrow, vertical "A MONOGRAPH" spine note) before the Manifesto, and closes with a final spread `[Services + Workflow] + [Contact]` — the colophon content is printed on the back of the last project sheet, and the dark "LET'S SHIP V1." page is the book's last sheet (never flipped past).
 
@@ -228,7 +228,7 @@ The book opens to a **cream title page** (brand mockup: Playfair names, mono "PO
 | 0 | Hard cover (ink board, foil frame, "OPEN THE BOOK") | Endpaper |
 | 1 | Title page (cream, no folio) | decorative (01) |
 | 2 | Manifesto / About (01) | Expend plate (02) |
-| 3 | Expend (02, compact text + mobile screenshot) | Invois plate (03) |
+| 3 | Expend (02, compact text) | Invois plate (03) |
 | 4 | Invois (03) | Ledjer plate (04) |
 | 5 | Ledjer (04) | Zipto plate (05) |
 | 6 | Zipto (05) | Colophon content — Services + The Workflow (06) |
@@ -250,7 +250,7 @@ The book opens to a **cream title page** (brand mockup: Playfair names, mono "PO
 
 ### Page → sheet index (nav + hashes)
 
-Cover 0 · Title 1 · About 2 · Work 3 · Capabilities/Process/Contact 7. Hashes `#cover`, `#title`, `#about`, `#work`, `#contact` deep-link on load. Note: the colophon content (Services + The Workflow) is the desktop-only left page of the final spread — like the project plates, it is not visible on mobile; the contact page is the last page there.
+Cover 0 · Title 1 · About 2 · Work 3 · Capabilities/Process/Contact 7. Hashes `#cover`, `#title`, `#about`, `#work`, `#contact` deep-link on load; `#work` opens on the Expend plate, `#capabilities`/`#process` open on the colophon. On mobile the colophon (Services + The Workflow) is the left page of the final spread — reachable via the Capabilities / Process nav links or by flipping through.
 
 ### Deviations to verify visually
 

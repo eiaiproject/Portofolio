@@ -31,6 +31,10 @@ export default function Home() {
   /* Initial state stays 0 (cover) on both server and client so hydration
      never mismatches. Deep links are honored once on mount below. */
   const [current, setCurrent] = useState(0);
+  /* Mobile side of the current spread: 1 = right page (text), 0 = left page
+     (plate/colophon). Mobile shows the left page first, then slides to the
+     right page, then flips to the next sheet. */
+  const [side, setSide] = useState<0 | 1>(1);
   const [isAnimating, setIsAnimating] = useState(false);
 
   const currentRef = useRef(current);
@@ -116,11 +120,42 @@ export default function Home() {
     [maxPage]
   );
 
+  /* Sheets 3..7 have real left-page content (project plates / colophon);
+     earlier backs are decorative (endpaper / verso) and stay hidden. */
+  const canShowPlate = (i: number) => i >= 3;
+
+  /* ── Mobile spread navigation ──
+     next: left page → slide right; right page → flip to next sheet (lands on
+     its left page). prev mirrors: right page → slide back; left page → flip
+     back (lands on the previous sheet's right page). */
+  const goNext = useCallback(() => {
+    if (side === 0) {
+      setSide(1);
+      return;
+    }
+    const next = currentRef.current + 1;
+    if (next > maxPage) return;
+    if (!flipTo(next)) return;
+    setSide(canShowPlate(next) ? 0 : 1);
+  }, [side, flipTo, maxPage]);
+
+  const goPrev = useCallback(() => {
+    if (side === 1 && canShowPlate(currentRef.current)) {
+      setSide(0);
+      return;
+    }
+    const prev = currentRef.current - 1;
+    if (prev < 0) return;
+    if (!flipTo(prev)) return;
+    setSide(1);
+  }, [side, flipTo]);
+
   /* ── Nav bridge: book pages for the header links ── */
   const handleNavigate = useCallback(
-    (page: number) => {
+    (page: number, navSide: 0 | 1) => {
       /* Only touch the hash when the navigation actually happened. */
       if (!flipTo(page)) return;
+      setSide(navSide);
       const hash =
         page === 0
           ? "cover"
@@ -129,47 +164,51 @@ export default function Home() {
             : page === 2
               ? "about"
               : page === maxPage
-                ? "contact"
+                ? navSide === 0
+                  ? "capabilities"
+                  : "contact"
                 : "work";
       window.history.replaceState(null, "", `#${hash}`);
     },
     [flipTo, maxPage]
   );
 
-  /* ── Keyboard: ArrowRight / ArrowLeft flip ── */
+  /* ── Keyboard: ArrowRight / ArrowLeft navigate the mobile spread model ── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        flipTo(currentRef.current + 1);
+        goNext();
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        flipTo(currentRef.current - 1);
+        goPrev();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [flipTo]);
+  }, [goNext, goPrev]);
 
   /* ── Read URL hash once on mount to open the matching page ── */
   useEffect(() => {
     const hash = window.location.hash.replace("#", "").toLowerCase();
-    const map: Record<string, number> = {
-      cover: 0,
-      home: 0,
-      title: 1,
-      about: 2,
-      manifesto: 2,
-      work: 3,
-      capabilities: maxPage,
-      process: maxPage,
-      contact: maxPage,
+    const map: Record<string, [number, 0 | 1]> = {
+      cover: [0, 1],
+      home: [0, 1],
+      title: [1, 1],
+      about: [2, 1],
+      manifesto: [2, 1],
+      work: [3, 0],
+      capabilities: [maxPage, 0],
+      process: [maxPage, 0],
+      contact: [maxPage, 1],
     };
     if (hash in map) {
+      const [p, s] = map[hash];
       /* One-time external sync with the URL — not a cascading render,
          so the set-state-in-effect rule does not apply here. */
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCurrent(map[hash]);
+      setCurrent(p);
+      setSide(s);
     }
   }, [maxPage]);
 
@@ -194,7 +233,15 @@ export default function Home() {
   return (
     <>
       <SiteHeader current={current} lastPage={maxPage} onNavigate={handleNavigate} />
-      <Book sheets={sheets} current={current} isAnimating={isAnimating} onFlip={flipTo} />
+      <Book
+        sheets={sheets}
+        current={current}
+        side={side}
+        isAnimating={isAnimating}
+        onFlip={flipTo}
+        onNext={goNext}
+        onPrev={goPrev}
+      />
     </>
   );
 }

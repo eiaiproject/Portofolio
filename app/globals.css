@@ -1330,25 +1330,6 @@ main {
   font-size: 0.55rem;
 }
 
-.book-shot {
-  margin-top: 1.25rem;
-  aspect-ratio: auto;
-  height: 7.5rem;
-}
-
-/* Small screenshot on the project page — mobile only. On desktop the
-   large image plate on the facing page replaces it. */
-.project-mobile-shot {
-  height: 4.5rem;
-  margin-top: 1rem;
-}
-
-@media (min-width: 1024px) {
-  .project-mobile-shot {
-    display: none;
-  }
-}
-
 /* Mobile reading mode: the open page's content scrolls inside its frame,
    so the type can be comfortable instead of squeezed to fit. The book
    itself still fits the viewport, keeping the flip controls in reach. */
@@ -1378,10 +1359,6 @@ main {
     margin: 0.9rem 0 1.1rem;
     font-size: 0.62rem;
     line-height: 1.7;
-  }
-  .project-mobile-shot {
-    height: 6rem;
-    margin-top: 1.25rem;
   }
   .book-frontmatter .manifesto-pull {
     font-size: clamp(1.5rem, 5.5vw, 1.9rem);
@@ -1545,6 +1522,88 @@ main {
 
 .contact-page .folio {
   color: rgba(244, 241, 234, 0.6);
+}
+
+/* ═══ Mobile spread viewer (≤1023px) ═══
+   Desktop 3D spread is hidden; a flat slide viewer shows the LEFT page
+   (plate / colophon) first, slides to the right (text) page, then a flip
+   lands on the next sheet's left page. Only transform animates. */
+
+.book-mobile {
+  display: none;
+  width: var(--book-w);
+}
+
+.book-mobile-viewport {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  position: relative;
+  border-radius: 2px;
+}
+
+.book-mobile-track {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  transition: transform 0.45s cubic-bezier(0.645, 0.045, 0.355, 1);
+  will-change: transform;
+}
+
+/* Sheets without a real left page (cover / title / manifesto) show a single
+   panel; with two panels, show-text slides the track one panel left. */
+.book-mobile-track.single {
+  width: 100%;
+}
+
+.book-mobile-track.show-text {
+  transform: translateX(-50%);
+}
+
+.book-mobile-panel {
+  flex: 0 0 50%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+/* A cross-boundary sheet change lands on the plate — the incoming left page
+   turns in like a page being opened, so the sheet flip still reads as a flip. */
+.book-mobile-plate {
+  animation: plate-turn-in 0.55s var(--flip-ease) both;
+}
+
+@keyframes plate-turn-in {
+  from {
+    transform: rotateY(86deg);
+    opacity: 0.45;
+  }
+  to {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+/* Note: page-face roots are absolute; the panel provides the box, and any
+   inner .page-content keeps its own border / scroll. */
+.book-mobile-panel > * {
+  position: absolute;
+  inset: 0;
+}
+
+@media (max-width: 1023px) {
+  .book-3d {
+    display: none;
+  }
+  .book-mobile {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .book-mobile {
+    display: none;
+  }
 }
 
 /* ── Controls ── */

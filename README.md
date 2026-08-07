@@ -22,7 +22,7 @@ Portfolio for Anggie Irawan, an AI-assisted product builder who turns rough idea
 ## Features
 
 - **Editorial monograph aesthetic** — Cream background, high-contrast ink, serif display type
-- **Interactive 3D book** — A hard cover that opens, page-flip animations, and one project per spread (desktop shows the 2-page spread, mobile one scrollable page)
+- **Interactive 3D book** — A hard cover that opens, page-flip animations, and one project per spread (desktop shows the 2-page spread; mobile shows the left plate first, slides to the text page, then flips)
 - **Responsive, mobile-first layout** — Fixed header with collapsible navigation (iOS-safe)
 - **Project case studies** — Each project with problem, lesson, tech stack, and screenshot (Expend, Invois, Ledjer, Zipto)
 - **Accessibility** — Skip link, ARIA labels, focus-visible outlines, reduced-motion support
