@@ -138,10 +138,10 @@ Flat. No shadows. All depth is expressed through 1px borders at two strengths (s
 - **Highlights:** Flex-wrap row of mono tags with border.
 
 ### Visual Frames
-- **Aspect ratio:** 4/3.
+- **Aspect ratio:** 8/5 (plate pages override to 3/4 — portrait brand-card plates fill the left page).
 - **Border:** 1px Border Strong.
-- **Background:** Slightly darker cream (#E8E3D6).
-- **Images:** Cover fit, 20% grayscale + 110% contrast for a unified archival look.
+- **Background:** Slightly darker cream (--plate-bg #E8E3D6).
+- **Images:** Cover fit, no filter — the portrait brand card's own muted tone carries the identity; the grain overlay is the only texture.
 - **Fallback:** Hidden image → centered mono placeholder text.
 
 ## 6. Typographic Details

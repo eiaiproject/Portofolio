@@ -37,7 +37,7 @@ export const PROJECTS: Project[] = [
     tools: "Stack: Next.js, React, TypeScript, Tailwind CSS, IndexedDB, Recharts, PWA",
     link: "https://expend.pages.dev",
     linkLabel: "View Live App",
-    image: "/expend-og.png",
+    image: "/expend-plate.png",
     imageAlt:
       "Expend brand card — wordmark on a light sage-toned background with feature list",
   },
@@ -54,7 +54,7 @@ export const PROJECTS: Project[] = [
     tools: "Stack: React, TypeScript, Vite, React Router, IndexedDB, jsPDF, PWA",
     link: "https://invois.pages.dev",
     linkLabel: "View Live App",
-    image: "/invois-og.png",
+    image: "/invoiz-plate.png",
     imageAlt:
       "Invois brand card — wordmark on a cream background with olive accents and feature list",
   },
@@ -71,7 +71,7 @@ export const PROJECTS: Project[] = [
     tools: "Stack: React 19, Vite, Tailwind CSS 4, React Router 7, TanStack Query 5, Supabase, PostgreSQL",
     link: "https://ledjer.id",
     linkLabel: "View Current Build",
-    image: "/ledjer-og.png",
+    image: "/ledjer-plate.png",
     imageAlt:
       "Ledjer brand card — wordmark on a warm cream background with wood-brown accents and feature list",
   },
@@ -88,7 +88,7 @@ export const PROJECTS: Project[] = [
     tools: "Stack: React, TypeScript, Vite, Web Worker, fflate, Turndown, PapaParse, PWA",
     link: "https://zipto.pages.dev",
     linkLabel: "View Live App",
-    image: "/zipto-og.png",
+    image: "/zipto-plate.png",
     imageAlt:
       "Zipto brand card — wordmark on a linen background with terracotta accents and feature list",
   },
