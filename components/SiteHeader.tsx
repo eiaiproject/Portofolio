@@ -2,10 +2,23 @@
 
 /* eslint-disable @next/next/no-img-element -- nav logo needs <img> for static export compatibility */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Menu, CloseCircle } from "reicon-react";
 
-export default function SiteHeader() {
+interface SiteHeaderProps {
+  /** Current book page (number of flipped sheets) — drives the active link. */
+  current?: number;
+  /** Index of the last sheet (the closing contact page) — nav links map to it. */
+  lastPage?: number;
+  /** Called with the target page index (0 cover, 1 title, 2 about, 3 work, lastPage contact). */
+  onNavigate?: (page: number) => void;
+}
+
+export default function SiteHeader({
+  current = 0,
+  lastPage = 7,
+  onNavigate,
+}: SiteHeaderProps) {
   const [open, setOpen] = useState(false);
   const scrollPos = useRef(0);
 
@@ -31,36 +44,6 @@ export default function SiteHeader() {
     };
   }, [open]);
 
-  /* ── Track active section for nav highlight ── */
-  useEffect(() => {
-    const sections = document.querySelectorAll<HTMLElement>("section[id]");
-    const navLinks = document.querySelectorAll<HTMLAnchorElement>(".nav-links a");
-    if (!sections.length || !navLinks.length) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const id = entry.target.id;
-          navLinks.forEach((link) => {
-            const href = link.getAttribute("href")?.replace("#", "");
-            if (href === id) {
-              link.classList.add("nav-active");
-              link.setAttribute("aria-current", "page");
-            } else {
-              link.classList.remove("nav-active");
-              link.removeAttribute("aria-current");
-            }
-          });
-        }
-      },
-      { rootMargin: "-40% 0px -55% 0px", threshold: 0 }
-    );
-
-    sections.forEach((s) => observer.observe(s));
-    return () => observer.disconnect();
-  }, []);
-
   /* ── Close mobile nav on resize past breakpoint ── */
   useEffect(() => {
     const onResize = () => {
@@ -71,16 +54,31 @@ export default function SiteHeader() {
   }, []);
 
   const links = [
-    ["work", "Work"],
-    ["about", "About"],
-    ["capabilities", "Capabilities"],
-    ["process", "Process"],
-    ["contact", "Contact"],
+    { id: "about", label: "About", page: 2 },
+    { id: "work", label: "Work", page: 3 },
+    { id: "capabilities", label: "Capabilities", page: lastPage },
+    { id: "process", label: "Process", page: lastPage },
+    { id: "contact", label: "Contact", page: lastPage },
   ] as const;
+
+  const activeId =
+    current === 0 || current === 1
+      ? null
+      : current === 2
+        ? "about"
+        : current === lastPage
+          ? "contact"
+          : "work";
+
+  const go = (page: number) => (e: MouseEvent) => {
+    e.preventDefault();
+    setOpen(false);
+    onNavigate?.(page);
+  };
 
   return (
     <header className="site-header">
-      <a href="#main-content" className="skip-link">
+      <a href="#book-main" className="skip-link">
         Skip to main content
       </a>
       <nav
@@ -88,16 +86,9 @@ export default function SiteHeader() {
         aria-label="Primary navigation"
         data-open={open ? "true" : "false"}
       >
-        <a
-          href="#hero"
-          className="nav-brand"
-          onClick={(e) => {
-            e.preventDefault();
-            setOpen(false);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        >
-          <img src="/AI-favicon.svg" alt="" className="nav-logo" aria-hidden="true" /> Monograph
+        <a href="#book-main" className="nav-brand" onClick={go(0)}>
+          <img src="/AI-favicon.svg" alt="" className="nav-logo" aria-hidden="true" />{" "}
+          Monograph
         </a>
         <button
           type="button"
@@ -114,13 +105,20 @@ export default function SiteHeader() {
           )}
         </button>
         <ul id="primary-menu" className="nav-links">
-          {links.map(([id, label]) => (
-            <li key={id}>
-              <a href={`#${id}`} onClick={() => setOpen(false)}>
-                {label}
-              </a>
-            </li>
-          ))}
+          <div className="nav-links-list" role="none">
+            {links.map(({ id, label, page }) => (
+              <li key={id}>
+                <a
+                  href={`#${id}`}
+                  className={activeId === id ? "nav-active" : undefined}
+                  aria-current={activeId === id ? "page" : undefined}
+                  onClick={go(page)}
+                >
+                  {label}
+                </a>
+              </li>
+            ))}
+          </div>
         </ul>
       </nav>
     </header>

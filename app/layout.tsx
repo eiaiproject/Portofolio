@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Space_Mono } from "next/font/google";
-import SiteHeader from "@/components/SiteHeader";
 import "./globals.css";
 
 const SITE_URL = "https://anggieirawan.my.id";
@@ -87,7 +86,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${spaceMono.variable}`}>
       <body>
-        <SiteHeader />
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>

@@ -6,11 +6,12 @@ colors:
   surface: "#F4F1EA"
   ink: "#111111"
   ink-muted: "#444444"
-  ink-faint: "#777777"
+  ink-faint: "#555555"
   accent: "#111111"
   accent-hover: "#000000"
   border: "rgba(0, 0, 0, 0.12)"
   border-strong: "rgba(0, 0, 0, 0.25)"
+  plate: "#E8E3D6"
 typography:
   display:
     fontFamily: "Playfair Display, Georgia, Times New Roman, serif"
@@ -22,7 +23,7 @@ typography:
     lineHeight: 1.6
   mono:
     fontFamily: "Space Mono, Courier New, monospace"
-    fontSize: "0.6–0.7rem"
+    fontSize: "0.5–0.75rem"
     letterSpacing: "0.08–0.12em"
     textTransform: "uppercase"
 spacing:
@@ -58,7 +59,7 @@ A restrained monochrome palette — true monochrome, not warm-tinted neutrals. T
 - **Paper** (#F4F1EA): Body background. A warm off-white, the uncoated page. All surfaces sit on this color.
 - **Ink** (#111111): Primary text, display headings, accent (buttons, borders, interactive elements), icons. The single voice of the interface.
 - **Ink Muted** (#444444): Secondary/descriptive text, project descriptions, body copy.
-- **Ink Faint** (#777777): Tertiary text, metadata, mono labels, footer text, subtle labels.
+- **Ink Faint** (#555555): Tertiary text, metadata, mono labels, footer text, subtle labels.
 
 ### Structural
 - **Border** (rgba(0,0,0,0.12)): Hairlines — section dividers, card outlines, light structural separators.
@@ -84,8 +85,8 @@ A restrained monochrome palette — true monochrome, not warm-tinted neutrals. T
 - **Section Title Medium** (800, clamp(1.5rem, 5vw, 3rem), 1.05): Section headings within content.
 - **Body** (400, 0.95rem, 1.7): All paragraph text. Max line length 72ch.
 - **Body Small** (400, 0.85rem, 1.6): Supporting text, hero description, capability descriptions.
-- **Mono Label** (400, 0.6–0.7rem, letter-spacing 0.08–0.12em): Navigation items, section meta, project metadata, tags, status indicators, buttons. Always uppercase.
-- **Mono Small** (400, 0.5–0.55rem, letter-spacing 0.2em): Footer notes, colophon, hero scroll indicator. Always uppercase.
+- **Mono Label** (400, 0.6–0.75rem, letter-spacing 0.08–0.12em): Navigation items, section meta, project metadata, tags, status indicators, buttons, project subtitles. Always uppercase. Workable steps: 0.6, 0.62, 0.65, 0.7, 0.75rem.
+- **Mono Small** (400, 0.5–0.58rem, letter-spacing 0.18–0.3em): Footer notes, colophon, folio numbers, plate captions, cover hints. Always uppercase. Workable steps: 0.5, 0.55, 0.58rem.
 
 ### Named Rules
 
@@ -207,3 +208,51 @@ All interactive elements (buttons, links, nav items, copy button) meet 44×44px 
 - Corporate SaaS landing page with hero-metric gradients, identical card grids, and accent color fills
 - "Creative agency" portfolio with oversized hero text, stock photography, and gradient accents
 - Anything that uses color as the primary differentiator — this system differentiates through typography and space
+
+---
+
+## 11. BOOK MODE — addendum (interaction model)
+
+> Update: the single scrolling page is now **one interactive book** — a hard cover that opens, page-flip animations, and one project per page. All copy, SEO, and accessibility standards are preserved. The old scroll-reveal/hero/section scaffolding was removed from `globals.css`; the inner content styles (dropcap, lesson blockouts, highlight tags, capability cards, process steps) are reused inside the page faces.
+
+### Sheet model
+
+8 sheets stacked. `current` = number of flipped sheets (0…7). Sheet 0's front is the cover; sheet 7's front is the dark closing contact page. All sheets stay mounted — content remains crawlable.
+
+Each project is a **2-page spread** (real-book model): its text page is the sheet's front (right page), and its image plate is printed on the BACK of the previous sheet (left page) — so on desktop the spread shows `[plate] + [text]` together. On mobile only the right page is visible at a time; the text page carries its own small screenshot, and its content **scrolls inside the page frame** for comfortable reading — the book itself still fits the viewport, so the flip controls stay in reach.
+
+The book opens to a **cream title page** (brand mockup: Playfair names, mono "PORTFOLIO EST. 2026" label, italic tagline with arrow, vertical "A MONOGRAPH" spine note) before the Manifesto, and closes with a final spread `[Services + Workflow] + [Contact]` — the colophon content is printed on the back of the last project sheet, and the dark "LET'S SHIP V1." page is the book's last sheet (never flipped past).
+
+| Sheet | Front (recto — right page) | Back (verso — left page) |
+|---|---|---|
+| 0 | Hard cover (ink board, foil frame, "OPEN THE BOOK") | Endpaper |
+| 1 | Title page (cream, no folio) | decorative (01) |
+| 2 | Manifesto / About (01) | Expend plate (02) |
+| 3 | Expend (02, compact text + mobile screenshot) | Invois plate (03) |
+| 4 | Invois (03) | Ledjer plate (04) |
+| 5 | Ledjer (04) | Zipto plate (05) |
+| 6 | Zipto (05) | Colophon content — Services + The Workflow (06) |
+| 7 | Contact — "LET'S SHIP V1." dark closing page (07) | decorative (07) |
+
+### Flip engine
+
+- `.book-scene` has `perspective: 2200px`; sheets rotate `-180deg` about their **left edge** (the spine) with `transform-origin: left center`.
+- Faces: `.sheet-front` / `.sheet-back` with `backface-visibility: hidden`; the back is pre-rotated 180deg.
+- Transition: `transform 1100ms cubic-bezier(0.645, 0.045, 0.355, 1)` (easeInOutCubic). **Transform and opacity only — never layout properties or box-shadow.**
+- **Pitfall:** never put `overflow` on an element with `transform-style: preserve-3d` (it flattens the 3D context). Internal page scrolling lives on a plain 2D `.page-content` wrapper inside each face.
+- Z-index rule: flipped sheets → `i + 1`; unflipped → `sheets.length - i`; the mid-flip sheet is elevated above both stacks for the animation duration.
+- Cover front and the static `.book-base` back-board are 3px larger than the paper sheets (negative insets) so boards peek out like a real hardcover.
+- Geometry: the current page stays centered; on viewports ≥ 1024px the wrapper shifts 50% of book width once opened so the full 2-page spread centers.
+- **Mobile-first sizing:** `--book-w` is height-capped from `100dvh` (minus nav, page chrome, and controls) so book + controls fit one viewport without page scroll — `100vh` falls back on older iOS, and short screens (< 520px tall, landscape phones) drop the cap and scroll naturally. Safe-area insets keep the nav clear of the notch and the controls clear of the home indicator (`viewport-fit: cover`). `touch-action: manipulation` prevents double-tap zoom on the sheets and controls; a pointer-drag on a sheet (scroll attempt or text selection) never triggers a flip. Mobile pages read with **internal scroll**: type is comfortable (not squeezed to fit the frame), and `.page-content` scrolls when it overflows; desktop pages stay compact so the spread never scrolls.
+- Input is locked during a flip (`isAnimating`, cleared after ~1100ms). Clicks, Prev/Next buttons, and ArrowLeft/ArrowRight all navigate; focus moves to the new page's heading after the flip lands.
+- All sheets stay in the DOM (SEO). The cover tilts `-4deg` on hover while closed (desktop only).
+- Reduced motion: no 3D rotation at all — flat pages swap with a 0.3s opacity crossfade; all controls and keyboard still work.
+
+### Page → sheet index (nav + hashes)
+
+Cover 0 · Title 1 · About 2 · Work 3 · Capabilities/Process/Contact 7. Hashes `#cover`, `#title`, `#about`, `#work`, `#contact` deep-link on load. Note: the colophon content (Services + The Workflow) is the desktop-only left page of the final spread — like the project plates, it is not visible on mobile; the contact page is the last page there.
+
+### Deviations to verify visually
+
+- The desktop spread centering uses `translateX(50%)` (the wrap is flex-centered, so +50% puts the spine at the container center). If the spread looks off-center in a browser, this is the value to flip.
+- Two opacity-only lighting gradients (flip-darken / page-land) are the only sanctioned gradient exceptions beyond the book's soft shadow. Remove them if they cause artifacts.

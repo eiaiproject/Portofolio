@@ -22,9 +22,9 @@ Portfolio for Anggie Irawan, an AI-assisted product builder who turns rough idea
 ## Features
 
 - **Editorial monograph aesthetic** — Cream background, high-contrast ink, serif display type
+- **Interactive 3D book** — A hard cover that opens, page-flip animations, and one project per spread (desktop shows the 2-page spread, mobile one scrollable page)
 - **Responsive, mobile-first layout** — Fixed header with collapsible navigation (iOS-safe)
 - **Project case studies** — Each project with problem, lesson, tech stack, and screenshot (Expend, Invois, Ledjer, Zipto)
-- **Scroll-reveal animations** — Sections fade in via IntersectionObserver
 - **Accessibility** — Skip link, ARIA labels, focus-visible outlines, reduced-motion support
 - **Fully static export** — Deployable to Cloudflare Pages, no server needed
 
@@ -73,14 +73,20 @@ Output goes to `out/`.
 ```
 ├── app/
 │   ├── layout.tsx      # Root layout, fonts, metadata
-│   ├── page.tsx        # Main portfolio page
+│   ├── page.tsx        # Book composition (8 sheets, state, keyboard, hash)
 │   ├── not-found.tsx   # 404 page
 │   └── globals.css     # All styles and design tokens
 ├── components/
-│   └── SiteHeader.tsx  # Navigation
+│   ├── Book.tsx        # 3D flip engine (controlled)
+│   ├── SiteHeader.tsx  # Navigation
+│   └── book-pages/     # Cover, title page, manifesto, projects, colophon
+├── lib/
+│   └── projects.ts     # Project data (verbatim copy)
+├── .github/workflows/  # SonarCloud quality gate CI
 ├── public/             # Images and favicon
 ├── DESIGN.md           # Design system reference
 ├── PRODUCT.md          # Product context and goals
+├── sonar-project.properties
 └── package.json
 ```
 
@@ -106,6 +112,19 @@ Output goes to `out/`.
 6. Node.js version: 20
 
 No environment variables needed.
+
+## Quality Gate (SonarCloud)
+
+A GitHub Actions workflow (`.github/workflows/sonar-quality-gate.yml`) runs on every **push**, **pull request**, and **merge to `main`**:
+
+1. `npm ci` + `npm run lint` + `npm run build`
+2. SonarCloud scan with `sonar.qualitygate.wait=true` — the job **fails while the Quality Gate is red** (PRs from forks are skipped: the `SONAR_TOKEN` secret is not available to them)
+
+### One-time setup
+
+1. Create the project at [SonarCloud](https://sonarcloud.io/projects/create) (free), link this GitHub repo, and copy its **organization** and **project key** into `sonar-project.properties` (defaults: org `eiaiproject`, key `eiaiproject_Portofolio`).
+2. Add a **`SONAR_TOKEN`** secret: repo **Settings → Secrets and variables → Actions**.
+3. Optional but recommended: in **Settings → Branches → main → Require status checks**, require the **SonarCloud Code Analysis** check so a PR can only be merged when the Quality Gate passes.
 
 ## License
 

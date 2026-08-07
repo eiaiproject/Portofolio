@@ -1,0 +1,72 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Sonar Quality Gate — runs on every push, pull request, and merge to
+# `main`. The SonarCloud scan uses `sonar.qualitygate.wait=true`, so the
+# scanner waits for the Quality Gate computation and this job FAILS while
+# the gate is red — and with the "SonarCloud Code Analysis" check added to
+# main's required status checks, PRs can only be merged on a green gate.
+#
+# One-time setup:
+#   1. Create the project at https://sonarcloud.io/projects/create and
+#      copy its organization + project key into `sonar-project.properties`.
+#   2. Add a `SONAR_TOKEN` secret: repo Settings → Secrets and variables
+#      → Actions.
+#   3. Recommended: Settings → Branches → main → Require status checks →
+#      require the "SonarCloud Code Analysis" check, so PRs can only be
+#      merged when the Quality Gate passes.
+# ═══════════════════════════════════════════════════════════════════════
+name: Sonar Quality Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    name: Build, lint & Sonar analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Shallow clones reduce the accuracy of Sonar analysis.
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      # Fork PRs have no access to the SONAR_TOKEN secret, so only scan
+      # when the PR comes from this repository (or it is not a PR).
+      - name: SonarCloud scan
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          # Wait for the Quality Gate result; exits non-zero when the
+          # gate is red, failing this workflow.
+          args: >
+            -Dsonar.qualitygate.wait=true
