@@ -14,7 +14,7 @@ import ContactPage from "@/components/book-pages/ContactPage";
 import Verso from "@/components/book-pages/Verso";
 import { PROJECTS } from "@/lib/projects";
 
-/* Flip transition duration — must match the CSS transition (1.1s). */
+/* Flip transition duration — must match the CSS transition (--flip-ms). */
 const FLIP_MS = 1100;
 
 /* ── Email parts (constructed at runtime, never in static HTML) ── */
@@ -27,20 +27,32 @@ function getMailto() {
   return `mailto:${getEmail()}?subject=Project%20Inquiry`;
 }
 
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 export default function Home() {
   /* Initial state stays 0 (cover) on both server and client so hydration
      never mismatches. Deep links are honored once on mount below. */
   const [current, setCurrent] = useState(0);
-  /* Mobile side of the current spread: 1 = right page (text), 0 = left page
-     (plate/colophon). Mobile shows the left page first, then slides to the
-     right page, then flips to the next sheet. */
-  const [side, setSide] = useState<0 | 1>(1);
-  const [isAnimating, setIsAnimating] = useState(false);
+  /* Flip state machine: non-null while a flip (or fast jump) runs.
+     `current` is the visual/target page (drives the CSS class change),
+     `flip.from` the settled page the reader is leaving. Both are the same
+     in idle. */
+  const [flip, setFlip] = useState<{ from: number; to: number } | null>(null);
+  /* Narrow screens (<1024px) get the colophon as an extra closing recto
+     page; wide screens show it only as the left page of the final spread.
+     SSR and the first client paint always use the base (desktop) book so
+     hydration never mismatches — the extra sheet appears after mount. */
+  const [isMobile, setIsMobile] = useState(false);
+  const emailBtnRef = useRef<HTMLButtonElement>(null);
 
   const currentRef = useRef(current);
-  const animatingRef = useRef(false);
+  const flipRef = useRef<{ from: number; to: number } | null>(null);
   const timerRef = useRef<number | null>(null);
-  const emailBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     currentRef.current = current;
@@ -49,9 +61,13 @@ export default function Home() {
   /* ── All sheets stay mounted so every page remains in the DOM (SEO).
      Real-book spread model: a page's image plate is printed on the back
      of the PREVIOUS sheet, so its spread shows [plate] + [text] together
-     on desktop. On mobile only the right (recto) page is visible — it
-     carries a small screenshot of its own, so nothing is lost.
-     The closing spread reads [Services + Workflow] + [Contact]. ── */
+     on wide screens. On narrow screens the book stays centered, showing
+     only the recto page — each recto carries a small screenshot of its
+     own, so nothing is lost. The closing spread reads
+     [Services + Workflow] + [Contact]; on narrow screens Services +
+     Workflow becomes its own recto page just before Contact, so the
+     colophon stays reachable on mobile and "LET'S SHIP V1." is always
+     the last page the reader lands on. ── */
   const sheets = useMemo<BookSheet[]>(() => {
     const entries = PROJECTS.map((project, i) => ({
       project,
@@ -66,8 +82,10 @@ export default function Home() {
         back: next ? (
           <ProjectPlate project={next.project} folio={next.folio} />
         ) : (
-          /* Left page of the final spread — Services + The Workflow. */
-          <ColophonContent folio="06" />
+          /* Left page of the final spread — Services + The Workflow. On
+             narrow screens this spread copy gets suffixed ids because the
+             same content also renders as the closing recto page (below). */
+          <ColophonContent folio="06" idSuffix={isMobile ? "-spread" : ""} />
         ),
       };
     });
@@ -83,99 +101,132 @@ export default function Home() {
       {
         id: "manifesto",
         front: <FrontMatter folio="01" />,
-        /* Left page of the first project's spread. */
+        /* Left page of the first project's spread. Only this first plate is
+           eager — every later plate loads lazily (see ProjectPlate). */
         back: (
-          <ProjectPlate project={entries[0].project} folio={entries[0].folio} />
+          <ProjectPlate
+            project={entries[0].project}
+            folio={entries[0].folio}
+            priority
+          />
         ),
       },
       ...projectSheets,
+      /* Narrow screens only: the colophon becomes a real recto page right
+         before the closing contact page — mirroring the desktop spread
+         ([Services + Workflow] + [Contact]), so "LET'S SHIP V1." stays the
+         final page. Its back is never revealed (it is only ever flipped
+         past into contact). Canonical ids stay on this page copy; the
+         spread copy above is suffixed instead. */
+      ...(isMobile
+        ? [
+            {
+              id: "colophon",
+              front: <ColophonContent folio="06" />,
+              back: <Verso folio="06" />,
+            },
+          ]
+        : []),
       {
         id: "contact",
         front: <ContactPage folio="07" ref={emailBtnRef} />,
         back: <Verso folio="07" />,
       },
     ];
-  }, []);
+  }, [isMobile]);
 
   /* Last page is never flipped past. */
   const maxPage = sheets.length - 1;
+  /* Closing contact sheet — "LET'S SHIP V1." is always the last page. */
+  const contactPage = sheets.findIndex((s) => s.id === "contact");
+  /* Services + Workflow content: its own recto page on narrow screens
+     (the colophon, just before contact), otherwise the final spread on
+     the contact sheet. */
+  const colophonPage = isMobile
+    ? sheets.findIndex((s) => s.id === "colophon")
+    : contactPage;
+  /* First-render (base) sheets, captured before the mobile colophon sheet
+     is appended — the mount-time hash targets are computed against them. */
+  const baseSheetsRef = useRef(sheets);
+
+  /* ── Flip completion (idempotent) — called from the book's transitionend
+     and by the fallback timer below. Releases the input lock. ── */
+  const finishFlip = useCallback(() => {
+    if (!flipRef.current) return;
+    flipRef.current = null;
+    setFlip(null);
+  }, []);
 
   /* ── Flip with input lock (never interrupt a mid-flip).
-     Returns false when the flip is rejected (mid-animation or out of range). ── */
+     Returns false when the flip is rejected (mid-animation or out of range).
+     The visual `current` updates immediately so the CSS transition runs;
+     `flip.from` keeps the settled page until completion. Completion is
+     reported by Book via transitionend (or a fast-jump timer); the timeout
+     here is only the safety net. ── */
   const flipTo = useCallback(
     (next: number): boolean => {
-      if (animatingRef.current) return false;
+      if (flipRef.current) return false;
       const clamped = Math.max(0, Math.min(next, maxPage));
       if (clamped === currentRef.current) return false;
-      animatingRef.current = true;
-      setIsAnimating(true);
+      const from = currentRef.current;
+      flipRef.current = { from, to: clamped };
+      setFlip({ from, to: clamped });
       setCurrent(clamped);
       if (timerRef.current !== null) window.clearTimeout(timerRef.current);
-      timerRef.current = window.setTimeout(() => {
-        animatingRef.current = false;
-        setIsAnimating(false);
-      }, FLIP_MS);
+      const delay = prefersReducedMotion() ? 250 : FLIP_MS + 150;
+      timerRef.current = window.setTimeout(finishFlip, delay);
       return true;
     },
-    [maxPage]
+    [maxPage, finishFlip]
   );
 
-  /* Sheets 3..7 have real left-page content (project plates / colophon);
-     earlier backs are decorative (endpaper / verso) and stay hidden. */
-  const canShowPlate = (i: number) => i >= 3;
-
-  /* ── Mobile spread navigation ──
-     next: left page → slide right; right page → flip to next sheet (lands on
-     its left page). prev mirrors: right page → slide back; left page → flip
-     back (lands on the previous sheet's right page). */
+  /* ── Spread navigation: Prev / Next flip exactly one sheet. ── */
   const goNext = useCallback(() => {
-    if (side === 0) {
-      setSide(1);
-      return;
-    }
-    const next = currentRef.current + 1;
-    if (next > maxPage) return;
-    if (!flipTo(next)) return;
-    setSide(canShowPlate(next) ? 0 : 1);
-  }, [side, flipTo, maxPage]);
+    flipTo(currentRef.current + 1);
+  }, [flipTo]);
 
   const goPrev = useCallback(() => {
-    if (side === 1 && canShowPlate(currentRef.current)) {
-      setSide(0);
-      return;
-    }
-    const prev = currentRef.current - 1;
-    if (prev < 0) return;
-    if (!flipTo(prev)) return;
-    setSide(1);
-  }, [side, flipTo]);
+    flipTo(currentRef.current - 1);
+  }, [flipTo]);
 
-  /* ── Nav bridge: book pages for the header links ── */
+  /* ── Nav bridge: book pages for the header links. The link id keeps the
+     URL hash meaningful — capabilities / process / contact each keep
+     their own hash (on narrow screens capabilities / process land on the
+     colophon page while contact stays the final page). ── */
   const handleNavigate = useCallback(
-    (page: number, navSide: 0 | 1) => {
+    (page: number, linkId?: string) => {
       /* Only touch the hash when the navigation actually happened. */
       if (!flipTo(page)) return;
-      setSide(navSide);
+      const known = ["about", "work", "capabilities", "process", "contact"];
       const hash =
-        page === 0
-          ? "cover"
-          : page === 1
-            ? "title"
-            : page === 2
-              ? "about"
-              : page === maxPage
-                ? navSide === 0
-                  ? "capabilities"
-                  : "contact"
+        linkId && known.includes(linkId)
+          ? linkId
+          : page === 0
+            ? "cover"
+            : page === 1
+              ? "title"
+              : page === 2
+                ? "about"
                 : "work";
       window.history.replaceState(null, "", `#${hash}`);
     },
-    [flipTo, maxPage]
+    [flipTo]
   );
 
-  /* ── Keyboard: ArrowRight / ArrowLeft navigate the mobile spread model ── */
+  /* ── Keyboard: ArrowRight / ArrowLeft flip the book. Ignored while typing
+     in form fields (defensive — the book has none). ── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
       if (e.key === "ArrowRight") {
         e.preventDefault();
         goNext();
@@ -188,31 +239,68 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, [goNext, goPrev]);
 
-  /* ── Read URL hash once on mount to open the matching page ── */
+  /* ── Viewport + deep link on mount (single pass, one paint) ──
+     Reads the narrow-screen flag and applies any URL hash together, so a
+     deep link lands on the FINAL index immediately: on narrow screens
+     capabilities / process target one sheet further (the colophon page),
+     while contact stays on its own sheet — both computed against the
+     base sheets (before the colophon sheet is appended below). Re-applying
+     the hash later would cause a spurious flip on load, so this never
+     re-runs. */
   useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const mobile = mq.matches;
+    /* One-time sync of the viewport flag on mount — the resize listener
+       below keeps it in sync afterwards. */
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMobile(mobile);
     const hash = window.location.hash.replace("#", "").toLowerCase();
-    const map: Record<string, [number, 0 | 1]> = {
-      cover: [0, 1],
-      home: [0, 1],
-      title: [1, 1],
-      about: [2, 1],
-      manifesto: [2, 1],
-      work: [3, 0],
-      capabilities: [maxPage, 0],
-      process: [maxPage, 0],
-      contact: [maxPage, 1],
+    const base = baseSheetsRef.current;
+    /* In the base (desktop) book contact is the last sheet; on narrow
+       screens the colophon takes that exact position and contact moves one
+       sheet further. Services + Workflow therefore always targets the base
+       contact position. */
+    const baseContact = base.findIndex((s) => s.id === "contact");
+    const map: Record<string, number> = {
+      cover: 0,
+      home: 0,
+      title: 1,
+      about: 2,
+      manifesto: 2,
+      work: 3,
+      capabilities: baseContact,
+      process: baseContact,
+      contact: mobile ? baseContact + 1 : baseContact,
     };
     if (hash in map) {
-      const [p, s] = map[hash];
-      /* One-time external sync with the URL — not a cascading render,
-         so the set-state-in-effect rule does not apply here. */
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCurrent(p);
-      setSide(s);
+      /* One-time external sync with the URL — not a cascading render. */
+      setCurrent(map[hash]);
     }
-  }, [maxPage]);
+  }, []);
 
-  /* ── Clear the flip lock timer on unmount ── */
+  /* Keep the viewport flag in sync on resize (adds / removes the mobile
+     colophon page) without ever re-applying the hash. */
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  /* Resizing across the breakpoint adds/removes the mobile colophon sheet
+     — clamp `current` back in range and cancel any in-flight flip toward
+     the page that no longer exists. The clamp is a pure safety guard that
+     only fires when the sheet count actually changed. */
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrent((c) => Math.min(c, sheets.length - 1));
+    if (flipRef.current && flipRef.current.to >= sheets.length) {
+      flipRef.current = null;
+      setFlip(null);
+    }
+  }, [sheets.length]);
+
+  /* ── Clear all timers on unmount ── */
   useEffect(
     () => () => {
       if (timerRef.current !== null) window.clearTimeout(timerRef.current);
@@ -220,27 +308,38 @@ export default function Home() {
     []
   );
 
-  /* ── Hydrate the email button on mount only (spam obfuscation) ── */
+  /* ── Hydrate the email button on mount only (spam obfuscation). The
+     contact page renders once inside the book; the ref tracks that copy
+     and the selector is a safety net for any future duplicate. ── */
   useEffect(() => {
     const mailto = getMailto();
-    if (emailBtnRef.current) {
-      emailBtnRef.current.onclick = () => {
-        window.location.href = mailto;
-      };
-    }
+    const hook = (b: HTMLButtonElement | null) => {
+      if (b) {
+        b.onclick = () => {
+          window.location.href = mailto;
+        };
+      }
+    };
+    hook(emailBtnRef.current);
+    document
+      .querySelectorAll<HTMLButtonElement>(".contact-actions .btn")
+      .forEach(hook);
   }, []);
 
   return (
     <>
-      <SiteHeader current={current} lastPage={maxPage} onNavigate={handleNavigate} />
+      <SiteHeader
+        current={current}
+        contactPage={contactPage}
+        colophonPage={colophonPage}
+        onNavigate={handleNavigate}
+      />
       <Book
         sheets={sheets}
         current={current}
-        side={side}
-        isAnimating={isAnimating}
+        flip={flip}
         onFlip={flipTo}
-        onNext={goNext}
-        onPrev={goPrev}
+        onFlipComplete={finishFlip}
       />
     </>
   );

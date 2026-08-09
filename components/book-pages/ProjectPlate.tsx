@@ -10,9 +10,12 @@ import type { Project } from "@/lib/projects";
 export default function ProjectPlate({
   project,
   folio,
+  priority = false,
 }: {
   project: Project;
   folio: string;
+  /** Only the very first plate is eager; every later plate loads lazily. */
+  priority?: boolean;
 }) {
   return (
     <div className="plate">
@@ -22,7 +25,8 @@ export default function ProjectPlate({
           alt={project.imageAlt}
           width={1200}
           height={630}
-          loading="eager"
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
           onError={(e) => {
             const img = e.currentTarget;
             img.style.display = "none";

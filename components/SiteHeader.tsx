@@ -8,18 +8,24 @@ import { Menu, CloseCircle } from "reicon-react";
 interface SiteHeaderProps {
   /** Current book page (number of flipped sheets) — drives the active link. */
   current?: number;
-  /** Index of the last sheet (the closing contact page) — nav links map to it. */
-  lastPage?: number;
-  /** Called with the target page index and mobile spread side
-      (0 = left plate, 1 = right text page). */
-  onNavigate?: (page: number, side: 0 | 1) => void;
+  /** Index of the closing contact page ("LET'S SHIP V1." — always the last
+      page the reader lands on). */
+  contactPage?: number;
+  /** Index of the Services + Workflow content — its own page on narrow
+      screens (the colophon, just before contact), otherwise the contact
+      sheet (the final spread shows it on the left). Defaults to contactPage. */
+  colophonPage?: number;
+  /** Called with the target page index and the link id (for the URL hash). */
+  onNavigate?: (page: number, linkId?: string) => void;
 }
 
 export default function SiteHeader({
   current = 0,
-  lastPage = 7,
+  contactPage = 7,
+  colophonPage,
   onNavigate,
 }: SiteHeaderProps) {
+  const colophon = colophonPage ?? contactPage;
   const [open, setOpen] = useState(false);
   const scrollPos = useRef(0);
 
@@ -55,26 +61,31 @@ export default function SiteHeader({
   }, []);
 
   const links = [
-    { id: "about", label: "About", page: 2, side: 1 },
-    { id: "work", label: "Work", page: 3, side: 0 },
-    { id: "capabilities", label: "Capabilities", page: lastPage, side: 0 },
-    { id: "process", label: "Process", page: lastPage, side: 0 },
-    { id: "contact", label: "Contact", page: lastPage, side: 1 },
+    { id: "about", label: "About", page: 2 },
+    { id: "work", label: "Work", page: 3 },
+    { id: "capabilities", label: "Capabilities", page: colophon },
+    { id: "process", label: "Process", page: colophon },
+    { id: "contact", label: "Contact", page: contactPage },
   ] as const;
 
+  /* The colophon page (mobile) carries the Services + Workflow content,
+     so it highlights Capabilities. On wide screens colophon === contact,
+     so the closing spread highlights Contact. */
   const activeId =
     current === 0 || current === 1
       ? null
       : current === 2
         ? "about"
-        : current === lastPage
+        : current === contactPage
           ? "contact"
-          : "work";
+          : current === colophon
+            ? "capabilities"
+            : "work";
 
-  const go = (page: number, side: 0 | 1) => (e: MouseEvent) => {
+  const go = (page: number, linkId?: string) => (e: MouseEvent) => {
     e.preventDefault();
     setOpen(false);
-    onNavigate?.(page, side);
+    onNavigate?.(page, linkId);
   };
 
   return (
@@ -87,7 +98,7 @@ export default function SiteHeader({
         aria-label="Primary navigation"
         data-open={open ? "true" : "false"}
       >
-        <a href="#book-main" className="nav-brand" onClick={go(0, 1)}>
+        <a href="#book-main" className="nav-brand" onClick={go(0)}>
           <img src="/AI-favicon.svg" alt="" className="nav-logo" aria-hidden="true" />{" "}
           Monograph
         </a>
@@ -106,20 +117,25 @@ export default function SiteHeader({
           )}
         </button>
         <ul id="primary-menu" className="nav-links">
-          <div className="nav-links-list" role="none">
-            {links.map(({ id, label, page, side }) => (
-              <li key={id}>
-                <a
-                  href={`#${id}`}
-                  className={activeId === id ? "nav-active" : undefined}
-                  aria-current={activeId === id ? "page" : undefined}
-                  onClick={go(page, side)}
-                >
-                  {label}
-                </a>
-              </li>
-            ))}
-          </div>
+          {/* Valid list structure: direct children of a ul are always li.
+              The wrapper li collapses on mobile (grid-rows gutter); the
+              inner list carries the actual links. */}
+          <li className="nav-links-list">
+            <ul className="nav-links-items">
+              {links.map(({ id, label, page }) => (
+                <li key={id}>
+                  <a
+                    href={`#${id}`}
+                    className={activeId === id ? "nav-active" : undefined}
+                    aria-current={activeId === id ? "page" : undefined}
+                    onClick={go(page, id)}
+                  >
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </li>
         </ul>
       </nav>
     </header>

@@ -8,23 +8,29 @@ import {
   type MouseEvent,
   type PointerEvent,
   type ReactNode,
+  type TransitionEvent,
 } from "react";
 
 /**
- * Controlled 3D book flip engine (desktop) + mobile spread viewer.
+ * Controlled 3D book flip engine — one engine on every screen size.
  *
  * Model:
  *  - `current` = number of flipped sheets (0 → cover readable … sheets.length-1 → last page).
  *  - Sheets are stacked in `.book`; each sheet rotates -180° about its left edge (the spine)
  *    when flipped, landing on the left stack and revealing its back (verso) face.
- *  - Desktop: the 2-page spread renders in 3D — left plate (back of the previous
- *    sheet) + right text page (front of the current sheet).
- *  - Mobile (≤1023px): a flat slide viewer instead. For sheets 3..7 the LEFT page
- *    (plate / colophon) shows first, taps slide to the right page, then the next
- *    tap forward flips to the next sheet (landing on its left page). Plate panels
- *    animate with a page-turn-in so the sheet change still reads as a flip.
+ *  - Wide screens (≥1024px): the open spread centers via `.book-open` (translateX(50%))
+ *    — left plate (back of the previous sheet) + right text page (front of the current sheet).
+ *  - Narrow screens (≤1023px): the same 3D book stays centered (no spread shift), so the
+ *    recto page fills the frame — matching the original monograph build. Each recto carries
+ *    its own small screenshot (`.project-mobile-shot`), so nothing is lost.
  *  - Only `transform` is animated. Layout properties never animate.
- *  - `isAnimating` (owned by the parent) locks input during the flip.
+ *  - Flip state machine (owned by the parent, passed in as `flip`):
+ *      current = settled/target page (drives the flipped classes)
+ *      flip    = { from, to } while an animation runs; null when idle
+ *    Completion is reported via `onFlipComplete` from the sheet's
+ *    `transitionend` (transform only) or the fast-jump timer. The parent
+ *    keeps a short fallback timer.
+ *  - `will-change` is applied only to the sheet that is mid-flip.
  */
 
 export interface BookSheet {
@@ -36,40 +42,44 @@ export interface BookSheet {
 interface BookProps {
   sheets: BookSheet[];
   current: number;
-  /** 1 = right page (text), 0 = left page (plate / colophon) — mobile only. */
-  side: 0 | 1;
-  isAnimating: boolean;
+  /** Non-null while a flip / fast jump runs: the settled page being left and
+      the target page. Drives z-index, lighting classes, and input lock. */
+  flip: { from: number; to: number } | null;
   onFlip: (next: number) => void;
-  /** Mobile spread navigation (see page.tsx goNext/goPrev). */
-  onNext: () => void;
-  onPrev: () => void;
+  /** Called when the flip animation actually ended (transitionend / jump
+      timer) so the parent can release its input lock. Idempotent. */
+  onFlipComplete: () => void;
 }
 
 const FLIP_MS = 1100;
-/* Sheets ≥ 3 have real left-page content (project plates / colophon);
-   earlier backs are decorative (endpaper / verso) and never shown. */
-const PLATE_FROM = 3;
+/* Long-jump (nav link) snap: sheets jump straight to the target with one
+   short fade — no per-sheet flips, no transitionend to wait for. */
+const FAST_MS = 520;
+
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
 
 export default function Book({
   sheets,
   current,
-  side,
-  isAnimating,
+  flip,
   onFlip,
-  onNext,
-  onPrev,
+  onFlipComplete,
 }: BookProps) {
   /* Transitions stay disabled until one frame after mount so a deep-linked
      initial state paints instantly instead of animating on load. */
   const [ready, setReady] = useState(false);
-  /* Which sheet is mid-flip (elevated z-index + lighting) and which was just revealed. */
-  const [flipState, setFlipState] = useState<{
-    flipping: number;
-    revealed: number;
-  } | null>(null);
+  /* Fast-travel mode: long nav jumps snap the whole book with one fade
+     instead of flipping every sheet in between. */
+  const [fast, setFast] = useState(false);
 
   const prevCurrent = useRef(current);
   const flipTimer = useRef<number | null>(null);
+  const fastTimer = useRef<number | null>(null);
   const focusTimer = useRef<number | null>(null);
   const tapStart = useRef<{ x: number; y: number } | null>(null);
   const sheetEls = useRef<Map<string, HTMLElement>>(new Map());
@@ -77,8 +87,17 @@ export default function Book({
   const maxPage = sheets.length - 1;
   const isFirst = current === 0;
   const isLast = current === maxPage;
-  /* Left page exists on mobile for sheets ≥ 3. */
-  const showPlate = current >= PLATE_FROM;
+  /* Any animation in flight locks navigation. */
+  const busy = flip !== null;
+  /* Deterministic z-index: the moving sheet is elevated above both stacks
+     for the whole flip — never for fast jumps (they snap in one paint). */
+  const movingSheet =
+    flip && Math.abs(flip.to - flip.from) === 1
+      ? Math.min(flip.from, flip.to)
+      : null;
+  const revealedSheet = flip && Math.abs(flip.to - flip.from) === 1 ? flip.to : null;
+
+  const headingId = (sheetId: string) => `book-heading-${sheetId}`;
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setReady(true));
@@ -97,10 +116,6 @@ export default function Book({
           p.scrollTop = 0;
         });
       }
-      /* Mobile strip panels keep their internal scrolls in sync too. */
-      document.querySelectorAll<HTMLElement>(".book-mobile .page-content").forEach((p) => {
-        p.scrollTop = 0;
-      });
     },
     [sheets]
   );
@@ -113,6 +128,17 @@ export default function Book({
         el.scrollHeight > el.clientHeight + 1 &&
         el.scrollTop < el.scrollHeight - el.clientHeight - 8;
       el.classList.toggle("has-overflow", hasMore);
+    });
+  }, []);
+
+  /* Make sure the incoming spread's images are decoded before/while the
+     page flips in, so they never pop in mid-animation. */
+  const decodeImages = useCallback((root: HTMLElement | undefined | null) => {
+    if (!root) return;
+    root.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+      if (typeof img.decode === "function") {
+        img.decode().catch(() => {});
+      }
     });
   }, []);
 
@@ -152,56 +178,55 @@ export default function Book({
     resetPageScrolls(current);
     markOverflow();
 
-    setFlipState({ flipping: Math.min(prev, current), revealed: current });
+    const jump = Math.abs(current - prev);
+    const reduced = prefersReducedMotion();
 
-    if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
-    flipTimer.current = window.setTimeout(() => setFlipState(null), FLIP_MS);
+    /* Decode the images on the incoming spread (front + left plate) before
+       the flip lands. */
+    decodeImages(sheetEls.current.get(sheets[current]?.id ?? ""));
+    decodeImages(sheetEls.current.get(sheets[current - 1]?.id ?? ""));
 
-    /* Move focus to the new page's heading once the flip lands. On mobile
-       the flip lands on the LEFT page (plate/colophon) — the heading is on
-       the hidden right page, so skip until the slide reveals it. */
+    if (jump > 1) {
+      /* Fast travel: snap all sheets to the target with one short fade.
+         No per-sheet transitionend fires, so a short timer completes it. */
+      setFast(true);
+      if (fastTimer.current !== null) window.clearTimeout(fastTimer.current);
+      fastTimer.current = window.setTimeout(() => {
+        setFast(false);
+        onFlipComplete();
+      }, FAST_MS);
+    } else {
+      /* Normal flip: the moving sheet's transitionend completes it; this
+         timer is only the safety net (e.g. tab hidden mid-flip, reduced
+         motion without transform transitions). */
+      if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
+      const fallback = reduced ? 300 : FLIP_MS + 150;
+      flipTimer.current = window.setTimeout(onFlipComplete, fallback);
+    }
+
+    /* Move focus to the new page's heading once the flip lands. */
     const sheet = sheets[current];
     if (sheet) {
       if (focusTimer.current !== null) window.clearTimeout(focusTimer.current);
-      const isMobile = window.matchMedia("(max-width: 1023px)").matches;
-      if (isMobile && side === 0) {
-        return;
-      }
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const delay = reduced ? 400 : FLIP_MS + 50;
+      const delay = reduced ? 350 : jump > 1 ? FAST_MS + 60 : FLIP_MS + 60;
       focusTimer.current = window.setTimeout(() => {
-        const el = document.getElementById(`book-heading-${sheet.id}`);
+        const el = document.getElementById(headingId(sheet.id));
         if (el) (el as HTMLElement).focus({ preventScroll: true });
       }, delay);
     }
 
     return () => {
       if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
+      if (fastTimer.current !== null) window.clearTimeout(fastTimer.current);
       if (focusTimer.current !== null) window.clearTimeout(focusTimer.current);
     };
-  }, [current, sheets, ready, resetPageScrolls, markOverflow, side]);
-
-  /* Mobile side change (slide): reset scrolls and move focus to the text
-     page's heading once the slide lands. */
-  useEffect(() => {
-    if (!ready) return;
-    resetPageScrolls(current);
-    markOverflow();
-    if (side !== 1) return;
-    const sheet = sheets[current];
-    if (!sheet) return;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = window.setTimeout(() => {
-      const el = document.getElementById(`book-heading-${sheet.id}`);
-      if (el) (el as HTMLElement).focus({ preventScroll: true });
-    }, reduced ? 300 : 500);
-    return () => window.clearTimeout(t);
-  }, [side, current, sheets, ready, resetPageScrolls, markOverflow]);
+  }, [current, sheets, ready, resetPageScrolls, markOverflow, onFlipComplete, decodeImages]);
 
   /* Final cleanup on unmount. */
   useEffect(
     () => () => {
       if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
+      if (fastTimer.current !== null) window.clearTimeout(fastTimer.current);
       if (focusTimer.current !== null) window.clearTimeout(focusTimer.current);
     },
     []
@@ -227,15 +252,40 @@ export default function Book({
   };
 
   const handleSheetClick = (i: number) => (e: MouseEvent) => {
-    if (isAnimating) return;
+    if (busy) return;
     if (shouldIgnoreClick(e)) return;
     if (i === current) onFlip(current + 1);
     else if (i < current) onFlip(current - 1);
   };
 
+  /* Only the sheet that actually flipped reports completion: the event must
+     come from that exact element (not a child) and the property must be
+     transform — everything else is ignored. */
+  const handleSheetTransitionEnd = (i: number) => (e: TransitionEvent) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.propertyName !== "transform") return;
+    if (flip && Math.abs(flip.to - flip.from) === 1 && i === movingSheet) {
+      onFlipComplete();
+    }
+  };
+
   const indicator = isFirst
     ? "Cover"
     : `${String(current).padStart(2, "0")} / ${String(maxPage).padStart(2, "0")}`;
+
+  /* ── Single live region for the whole book. The visual indicator is plain
+     text; this sr-only region announces the settled page (during a flip the
+     reader is still on `flip.from`, so nothing double-announces). ── */
+  const pageLabel = (id: string) =>
+    id
+      .split("-")
+      .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+      .join(" ");
+  const settled = flip ? flip.from : current;
+  const announcement =
+    settled === 0
+      ? "Cover"
+      : `Page ${settled} of ${maxPage}: ${pageLabel(sheets[settled]?.id ?? "")}`;
 
   return (
     <div
@@ -245,10 +295,16 @@ export default function Book({
       role="region"
       aria-label="Portfolio book"
     >
-      {/* ── Desktop / wide: the 3D book with its spread ── */}
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </p>
+
+      {/* The 3D book — the same engine on every screen size. On wide screens
+          the open spread centers; on narrow screens the book stays centered
+          so the recto page fills the frame. */}
       <div className="book-3d">
         <div
-          className={`book-wrap${current > 0 ? " book-open" : ""}`}
+          className={`book-wrap${current > 0 ? " book-open" : ""}${fast ? " book-fast" : ""}`}
           data-ready={ready ? "true" : "false"}
         >
           <div className="book-scene">
@@ -261,7 +317,7 @@ export default function Book({
                 /* Z-index rule: flipped → i + 1, unflipped → sheets.length - i;
                    the mid-flip sheet is elevated above both stacks. */
                 const zIndex =
-                  flipState && flipState.flipping === i
+                  movingSheet === i
                     ? 100 + i
                     : flipped
                       ? i + 1
@@ -272,8 +328,8 @@ export default function Book({
                   flipped ? "sheet-flipped" : "",
                   i === current ? "sheet-current" : "",
                   i === 0 ? "sheet-cover" : "",
-                  flipState && flipState.flipping === i ? "sheet-flipping" : "",
-                  flipState && flipState.revealed === i ? "sheet-revealed" : "",
+                  movingSheet === i ? "sheet-flipping" : "",
+                  revealedSheet === i ? "sheet-revealed" : "",
                 ]
                   .filter(Boolean)
                   .join(" ");
@@ -289,9 +345,23 @@ export default function Book({
                     }}
                     onPointerDown={handlePointerDown}
                     onClick={handleSheetClick(i)}
+                    onTransitionEnd={handleSheetTransitionEnd(i)}
                   >
-                    <div className="sheet-front">{sheet.front}</div>
-                    <div className="sheet-back" aria-hidden="true">
+                    {/* Non-current faces are inert + hidden from the a11y
+                        tree: their links can never receive keyboard focus.
+                        (The sheet itself stays clickable — inert children
+                        pass the hit through to it in Chromium/Firefox.
+                        Note: the outgoing page becomes hidden mid-flip while
+                        it may still hold focus — transient, input is locked
+                        and focus moves to the new heading at the end.) */}
+                    <div
+                      className="sheet-front"
+                      inert={i !== current ? true : undefined}
+                      aria-hidden={i !== current ? "true" : undefined}
+                    >
+                      {sheet.front}
+                    </div>
+                    <div className="sheet-back" inert aria-hidden="true">
                       {sheet.back}
                     </div>
                   </div>
@@ -307,82 +377,17 @@ export default function Book({
             type="button"
             className="btn"
             onClick={() => onFlip(current - 1)}
-            disabled={isAnimating || isFirst}
+            disabled={busy || isFirst}
             aria-label="Previous page"
           >
             &larr; Prev
           </button>
-          <span className="book-indicator" aria-live="polite" aria-atomic="true">
-            {indicator}
-          </span>
+          <span className="book-indicator">{indicator}</span>
           <button
             type="button"
             className="btn"
             onClick={() => onFlip(current + 1)}
-            disabled={isAnimating || isLast}
-            aria-label="Next page"
-          >
-            Next &rarr;
-          </button>
-        </div>
-      </div>
-
-      {/* ── Mobile (≤1023px): spread viewer — default shows the LEFT page
-           (plate / colophon), slides to the right (text) page, then flips. ── */}
-      <div className="book-mobile">
-        <div className="book-mobile-viewport">
-          <div
-            className={`book-mobile-track${side === 1 ? " show-text" : ""}${
-              !showPlate ? " single" : ""
-            }`}
-          >
-            {showPlate && (
-              <div
-                key={`plate-${current}`}
-                className="book-mobile-panel book-mobile-plate"
-                onPointerDown={handlePointerDown}
-                onClick={(e) => {
-                  if (isAnimating) return;
-                  if (shouldIgnoreClick(e)) return;
-                  onNext();
-                }}
-              >
-                {sheets[current - 1].back}
-              </div>
-            )}
-            <div
-              key={`page-${current}`}
-              className="book-mobile-panel book-mobile-page"
-              onPointerDown={handlePointerDown}
-              onClick={(e) => {
-                if (isAnimating) return;
-                if (shouldIgnoreClick(e)) return;
-                onNext();
-              }}
-            >
-              {sheets[current].front}
-            </div>
-          </div>
-        </div>
-
-        <div className="book-controls">
-          <button
-            type="button"
-            className="btn"
-            onClick={onPrev}
-            disabled={isFirst && side === 1}
-            aria-label="Previous page"
-          >
-            &larr; Prev
-          </button>
-          <span className="book-indicator" aria-live="polite" aria-atomic="true">
-            {side === 0 ? "Plate" : indicator}
-          </span>
-          <button
-            type="button"
-            className="btn"
-            onClick={onNext}
-            disabled={isLast && side === 1}
+            disabled={busy || isLast}
             aria-label="Next page"
           >
             Next &rarr;

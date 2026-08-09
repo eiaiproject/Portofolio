@@ -1,21 +1,37 @@
 /**
- * Left page of the final spread — Services + The Workflow (folio 06).
- * Printed on the back of the last project sheet, so the closing spread
- * reads [Services + Workflow] + [Contact] on desktop.
+ * Services + The Workflow (folio 06). On desktop this is the left page of
+ * the final spread — printed on the back of the last project sheet, so the
+ * closing spread reads [Services + Workflow] + [Contact]. On narrow screens
+ * the same content is re-rendered as the book's closing recto page (see
+ * page.tsx), which keeps the canonical ids; that spread copy is renamed
+ * via `idSuffix` so the two instances in the DOM never collide.
  * Copy is verbatim from the original Colophon section; the dark contact
  * panel lives on its own facing page.
  */
-export default function ColophonContent({ folio }: { folio: string }) {
+export default function ColophonContent({
+  folio,
+  idSuffix = "",
+}: {
+  folio: string;
+  idSuffix?: string;
+}) {
   return (
     <div className="book-colophon">
       <div className="page-content">
         <p className="book-lede">Colophon — End of Monograph Vol. 01</p>
-        <h2 id="book-heading-colophon" className="book-page-title" tabIndex={-1}>
+        <h2
+          id={`book-heading-colophon${idSuffix}`}
+          className="book-page-title"
+          tabIndex={-1}
+        >
           Colophon.
         </h2>
 
-        <section className="book-block" aria-labelledby="services-heading">
-          <h3 className="book-block-title" id="services-heading">
+        <section
+          className="book-block"
+          aria-labelledby={`services-heading${idSuffix}`}
+        >
+          <h3 className="book-block-title" id={`services-heading${idSuffix}`}>
             Services.
           </h3>
           <div className="capabilities-grid">
@@ -61,8 +77,11 @@ export default function ColophonContent({ folio }: { folio: string }) {
           </div>
         </section>
 
-        <section className="book-block" aria-labelledby="workflow-heading">
-          <h3 className="book-block-title" id="workflow-heading">
+        <section
+          className="book-block"
+          aria-labelledby={`workflow-heading${idSuffix}`}
+        >
+          <h3 className="book-block-title" id={`workflow-heading${idSuffix}`}>
             The Workflow.
           </h3>
           <div className="process-track">

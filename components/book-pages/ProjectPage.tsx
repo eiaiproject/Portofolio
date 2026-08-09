@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element -- onError handler needs <img>, Image component can't use onError pattern */
+
 import { ArrowUpRight } from "reicon-react";
 import type { Project } from "@/lib/projects";
 
@@ -5,7 +7,8 @@ import type { Project } from "@/lib/projects";
  * Project page (recto — the right page of the spread).
  * Carries ALL project copy in a compact layout that fits without scrolling.
  * The project plate (portrait brand card) is the left page of the spread —
- * shown beside it on desktop, and before it in the mobile slide viewer.
+ * shown beside it on wide screens; on narrow screens the book stays centered
+ * (recto only), so the page carries a small screenshot of its own.
  */
 export default function ProjectPage({
   project,
@@ -48,6 +51,27 @@ export default function ProjectPage({
         >
           {project.linkLabel} <ArrowUpRight size={16} weight="Outline" />
         </a>
+        {/* Mobile-only screenshot — hidden on wide screens, where the plate
+            on the facing page shows instead. */}
+        <div className="visual-frame project-mobile-shot">
+          <img
+            src={project.image}
+            alt={project.imageAlt}
+            width={1200}
+            height={630}
+            loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              const img = e.currentTarget;
+              img.style.display = "none";
+              const placeholder = img.nextElementSibling as HTMLElement | null;
+              if (placeholder) placeholder.style.display = "block";
+            }}
+          />
+          <span className="placeholder-text" style={{ display: "none" }}>
+            [ {project.name} Brand Card ]
+          </span>
+        </div>
       </div>
       <span className="folio" aria-hidden="true">
         {folio}
