@@ -1,48 +1,43 @@
 # ═══════════════════════════════════════════════════════════════════════
-# Sonar Cloud Analysis — runs on every push, pull request, and merge to
-# `main`. The SonarCloud scan is REPORT-ONLY (no quality-gate wait): a red
-# or uncomputed gate never fails this workflow. Push-to-main has no
-# new-code baseline and the project has no test suite, so the "Sonar way"
-# gate (which includes a coverage condition) cannot pass there. Pull
-# requests still get gate results from the "SonarCloud Code Analysis" app
-# check, where new code is the PR diff.
+# Lint & Build — runs on every push and pull request to `main`.
 #
-# One-time setup:
-#   1. Create the project at https://sonarcloud.io/projects/create and
-#      copy its organization + project key into `sonar-project.properties`.
-#   2. Add a `SONAR_TOKEN` secret: repo Settings → Secrets and variables
-#      → Actions.
-#   3. Recommended: Settings → Branches → main → Require status checks →
-#      require the "SonarCloud Code Analysis" check, so PRs can only be
-#      merged when the Quality Gate passes.
+# SonarCloud analysis is NOT part of this workflow. It runs separately via
+# SonarCloud's own GitHub App ("Automatic analysis"): the app analyzes the
+# default branch on SonarCloud's infrastructure with its own credentials,
+# so no token is needed in this repository. Results appear in the
+# SonarCloud dashboard; PR-level analysis with a quality gate usually
+# requires CI-based analysis (would need a SONAR_TOKEN secret).
+#
+# One-time setup (SonarCloud side):
+#   1. Open the project at https://sonarcloud.io → Administration →
+#      Analysis method.
+#   2. Select "Automatic analysis" and confirm the repo is connected
+#      through the SonarCloud GitHub App.
+#   3. Branch protection (optional): require the "Lint & Build" check so
+#      PRs can only be merged when the build is green.
 # ═══════════════════════════════════════════════════════════════════════
-name: Sonar Cloud Analysis
+name: Lint & Build
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened]
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: sonar-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality-gate:
-    name: Build, lint & Sonar analysis
+    name: Lint & Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          # Shallow clones reduce the accuracy of Sonar analysis.
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,7 +47,7 @@ jobs:
 
       # Lifecycle scripts are never needed: every native dependency ships
       # prebuilt platform binaries (sharp via @img/sharp-*, the eslint
-      # resolver via @unrs/resolver-binding-*) — see githubactions:S6505.
+      # resolver via @unrs/resolver-binding-*).
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
@@ -61,14 +56,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      # Fork PRs have no access to the SONAR_TOKEN secret, so only scan
-      # when the PR comes from this repository (or it is not a PR).
-      # Pinned to the full SHA behind the v8 tag (githubactions:S7637) —
-      # bump deliberately by resolving the tag's current commit.
-      - name: SonarCloud scan
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
