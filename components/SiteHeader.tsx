@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Menu, CloseCircle } from "reicon-react";
 
-interface SiteHeaderProps {
+type SiteHeaderProps = Readonly<{
   /** Current book page (number of flipped sheets) — drives the active link. */
   current?: number;
   /** Index of the closing contact page ("LET'S SHIP V1." — always the last
@@ -17,6 +17,22 @@ interface SiteHeaderProps {
   colophonPage?: number;
   /** Called with the target page index and the link id (for the URL hash). */
   onNavigate?: (page: number, linkId?: string) => void;
+}>;
+
+/* Which nav link is active for a given page. The colophon page (mobile)
+   carries the Services + Workflow content, so it highlights Capabilities.
+   On wide screens colophon === contact, so the closing spread highlights
+   Contact. */
+function activeLinkId(
+  current: number,
+  contactPage: number,
+  colophon: number
+): string | null {
+  if (current === 0 || current === 1) return null;
+  if (current === 2) return "about";
+  if (current === contactPage) return "contact";
+  if (current === colophon) return "capabilities";
+  return "work";
 }
 
 export default function SiteHeader({
@@ -68,19 +84,7 @@ export default function SiteHeader({
     { id: "contact", label: "Contact", page: contactPage },
   ] as const;
 
-  /* The colophon page (mobile) carries the Services + Workflow content,
-     so it highlights Capabilities. On wide screens colophon === contact,
-     so the closing spread highlights Contact. */
-  const activeId =
-    current === 0 || current === 1
-      ? null
-      : current === 2
-        ? "about"
-        : current === contactPage
-          ? "contact"
-          : current === colophon
-            ? "capabilities"
-            : "work";
+  const activeId = activeLinkId(current, contactPage, colophon);
 
   const go = (page: number, linkId?: string) => (e: MouseEvent) => {
     e.preventDefault();

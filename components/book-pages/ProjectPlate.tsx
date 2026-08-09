@@ -11,12 +11,12 @@ export default function ProjectPlate({
   project,
   folio,
   priority = false,
-}: {
+}: Readonly<{
   project: Project;
   folio: string;
   /** Only the very first plate is eager; every later plate loads lazily. */
   priority?: boolean;
-}) {
+}>) {
   return (
     <div className="plate">
       <div className="visual-frame plate-frame">

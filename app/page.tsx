@@ -34,6 +34,21 @@ function prefersReducedMotion() {
   );
 }
 
+/* Nav link ids keep the URL hash meaningful; section pages fall back to
+   their own hash. */
+function pageHash(page: number, linkId?: string): string {
+  if (
+    linkId &&
+    ["about", "work", "capabilities", "process", "contact"].includes(linkId)
+  ) {
+    return linkId;
+  }
+  if (page === 0) return "cover";
+  if (page === 1) return "title";
+  if (page === 2) return "about";
+  return "work";
+}
+
 export default function Home() {
   /* Initial state stays 0 (cover) on both server and client so hydration
      never mismatches. Deep links are honored once on mount below. */
@@ -197,18 +212,7 @@ export default function Home() {
     (page: number, linkId?: string) => {
       /* Only touch the hash when the navigation actually happened. */
       if (!flipTo(page)) return;
-      const known = ["about", "work", "capabilities", "process", "contact"];
-      const hash =
-        linkId && known.includes(linkId)
-          ? linkId
-          : page === 0
-            ? "cover"
-            : page === 1
-              ? "title"
-              : page === 2
-                ? "about"
-                : "work";
-      window.history.replaceState(null, "", `#${hash}`);
+      window.history.replaceState(null, "", `#${pageHash(page, linkId)}`);
     },
     [flipTo]
   );

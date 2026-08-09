@@ -11,10 +11,10 @@
 export default function ColophonContent({
   folio,
   idSuffix = "",
-}: {
+}: Readonly<{
   folio: string;
   idSuffix?: string;
-}) {
+}>) {
   return (
     <div className="book-colophon">
       <div className="page-content">

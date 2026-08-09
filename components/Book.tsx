@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
   type ReactNode,
@@ -39,7 +40,7 @@ export interface BookSheet {
   back: ReactNode;
 }
 
-interface BookProps {
+type BookProps = Readonly<{
   sheets: BookSheet[];
   current: number;
   /** Non-null while a flip / fast jump runs: the settled page being left and
@@ -49,7 +50,7 @@ interface BookProps {
   /** Called when the flip animation actually ended (transitionend / jump
       timer) so the parent can release its input lock. Idempotent. */
   onFlipComplete: () => void;
-}
+}>;
 
 const FLIP_MS = 1100;
 /* Long-jump (nav link) snap: sheets jump straight to the target with one
@@ -97,7 +98,10 @@ export default function Book({
       : null;
   const revealedSheet = flip && Math.abs(flip.to - flip.from) === 1 ? flip.to : null;
 
-  const headingId = (sheetId: string) => `book-heading-${sheetId}`;
+  const headingId = useCallback(
+    (sheetId: string) => `book-heading-${sheetId}`,
+    []
+  );
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setReady(true));
@@ -147,7 +151,7 @@ export default function Book({
   useEffect(() => {
     const onScroll = (e: Event) => {
       const el = e.target as HTMLElement;
-      if (!el.classList || !el.classList.contains("page-content")) return;
+      if (!el.classList?.contains("page-content")) return;
       const hasMore =
         el.scrollHeight > el.clientHeight + 1 &&
         el.scrollTop < el.scrollHeight - el.clientHeight - 8;
@@ -165,6 +169,45 @@ export default function Book({
     window.addEventListener("resize", markOverflow);
     return () => window.removeEventListener("resize", markOverflow);
   }, [ready, markOverflow]);
+
+  /* Fast travel (jump > 1) snaps the whole book to the target with one
+     short fade — no per-sheet transitionend fires, so a short timer
+     completes it. Otherwise the moving sheet's transitionend completes the
+     flip and this timer is only the safety net (e.g. tab hidden mid-flip,
+     reduced motion without transform transitions). */
+  const scheduleFlipCompletion = useCallback(
+    (jump: number, reduced: boolean) => {
+      if (jump > 1) {
+        setFast(true);
+        if (fastTimer.current !== null) window.clearTimeout(fastTimer.current);
+        fastTimer.current = window.setTimeout(() => {
+          setFast(false);
+          onFlipComplete();
+        }, FAST_MS);
+        return;
+      }
+      if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
+      const fallback = reduced ? 300 : FLIP_MS + 150;
+      flipTimer.current = window.setTimeout(onFlipComplete, fallback);
+    },
+    [onFlipComplete]
+  );
+
+  /* Move focus to the incoming page's heading once the flip lands. */
+  const schedulePageFocus = useCallback(
+    (sheetId: string | undefined, jump: number, reduced: boolean) => {
+      if (!sheetId) return;
+      if (focusTimer.current !== null) window.clearTimeout(focusTimer.current);
+      let delay = FLIP_MS + 60;
+      if (reduced) delay = 350;
+      else if (jump > 1) delay = FAST_MS + 60;
+      focusTimer.current = window.setTimeout(() => {
+        const el = document.getElementById(headingId(sheetId));
+        if (el) (el as HTMLElement).focus({ preventScroll: true });
+      }, delay);
+    },
+    [headingId]
+  );
 
   useEffect(() => {
     const prev = prevCurrent.current;
@@ -186,41 +229,15 @@ export default function Book({
     decodeImages(sheetEls.current.get(sheets[current]?.id ?? ""));
     decodeImages(sheetEls.current.get(sheets[current - 1]?.id ?? ""));
 
-    if (jump > 1) {
-      /* Fast travel: snap all sheets to the target with one short fade.
-         No per-sheet transitionend fires, so a short timer completes it. */
-      setFast(true);
-      if (fastTimer.current !== null) window.clearTimeout(fastTimer.current);
-      fastTimer.current = window.setTimeout(() => {
-        setFast(false);
-        onFlipComplete();
-      }, FAST_MS);
-    } else {
-      /* Normal flip: the moving sheet's transitionend completes it; this
-         timer is only the safety net (e.g. tab hidden mid-flip, reduced
-         motion without transform transitions). */
-      if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
-      const fallback = reduced ? 300 : FLIP_MS + 150;
-      flipTimer.current = window.setTimeout(onFlipComplete, fallback);
-    }
-
-    /* Move focus to the new page's heading once the flip lands. */
-    const sheet = sheets[current];
-    if (sheet) {
-      if (focusTimer.current !== null) window.clearTimeout(focusTimer.current);
-      const delay = reduced ? 350 : jump > 1 ? FAST_MS + 60 : FLIP_MS + 60;
-      focusTimer.current = window.setTimeout(() => {
-        const el = document.getElementById(headingId(sheet.id));
-        if (el) (el as HTMLElement).focus({ preventScroll: true });
-      }, delay);
-    }
+    scheduleFlipCompletion(jump, reduced);
+    schedulePageFocus(sheets[current]?.id, jump, reduced);
 
     return () => {
       if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
       if (fastTimer.current !== null) window.clearTimeout(fastTimer.current);
       if (focusTimer.current !== null) window.clearTimeout(focusTimer.current);
     };
-  }, [current, sheets, ready, resetPageScrolls, markOverflow, onFlipComplete, decodeImages]);
+  }, [current, sheets, ready, resetPageScrolls, markOverflow, scheduleFlipCompletion, schedulePageFocus, decodeImages]);
 
   /* Final cleanup on unmount. */
   useEffect(
@@ -238,11 +255,16 @@ export default function Book({
     tapStart.current = { x: e.clientX, y: e.clientY };
   };
 
+  /* Real interactive elements (links, buttons) handle themselves — a bare
+     tap or key on the page surface is the only thing that flips the book. */
+  const isInteractiveTarget = (target: HTMLElement) =>
+    !!target.closest("a, button");
+
   /* Shared tap guard: links/buttons handle themselves, drags and text
      selections never navigate. */
   const shouldIgnoreClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest("a, button")) return true;
+    if (isInteractiveTarget(target)) return true;
     const start = tapStart.current;
     tapStart.current = null;
     if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) return true;
@@ -254,6 +276,20 @@ export default function Book({
   const handleSheetClick = (i: number) => (e: MouseEvent) => {
     if (busy) return;
     if (shouldIgnoreClick(e)) return;
+    if (i === current) onFlip(current + 1);
+    else if (i < current) onFlip(current - 1);
+  };
+
+  /* Keyboard twin of the sheet click: Enter / Space on a sheet turns the
+     page the same way. The sheet itself stays out of the tab order — the
+     Prev/Next buttons and arrow keys are the primary keyboard path — this
+     just keeps the click semantics complete for programmatic focus. Events
+     from interactive children (links, buttons) are left to those elements. */
+  const handleSheetKeyDown = (i: number) => (e: KeyboardEvent) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    if (busy) return;
+    if (isInteractiveTarget(e.target as HTMLElement)) return;
+    e.preventDefault();
     if (i === current) onFlip(current + 1);
     else if (i < current) onFlip(current - 1);
   };
@@ -288,11 +324,10 @@ export default function Book({
       : `Page ${settled} of ${maxPage}: ${pageLabel(sheets[settled]?.id ?? "")}`;
 
   return (
-    <div
+    <section
       className="book-page"
       id="book-main"
       tabIndex={-1}
-      role="region"
       aria-label="Portfolio book"
     >
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
@@ -316,12 +351,9 @@ export default function Book({
                 const flipped = i < current;
                 /* Z-index rule: flipped → i + 1, unflipped → sheets.length - i;
                    the mid-flip sheet is elevated above both stacks. */
-                const zIndex =
-                  movingSheet === i
-                    ? 100 + i
-                    : flipped
-                      ? i + 1
-                      : sheets.length - i;
+                let zIndex = sheets.length - i;
+                if (movingSheet === i) zIndex = 100 + i;
+                else if (flipped) zIndex = i + 1;
 
                 const classes = [
                   "sheet",
@@ -335,7 +367,7 @@ export default function Book({
                   .join(" ");
 
                 return (
-                  <div
+                  <div // NOSONAR:S6848 -- pointer affordance; keyboard twin via onKeyDown, role=button would flatten page content for screen readers
                     key={sheet.id}
                     className={classes}
                     style={{ zIndex }}
@@ -345,6 +377,7 @@ export default function Book({
                     }}
                     onPointerDown={handlePointerDown}
                     onClick={handleSheetClick(i)}
+                    onKeyDown={handleSheetKeyDown(i)}
                     onTransitionEnd={handleSheetTransitionEnd(i)}
                   >
                     {/* Non-current faces are inert + hidden from the a11y
@@ -394,6 +427,6 @@ export default function Book({
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

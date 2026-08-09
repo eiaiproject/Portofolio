@@ -13,10 +13,10 @@ import type { Project } from "@/lib/projects";
 export default function ProjectPage({
   project,
   folio,
-}: {
+}: Readonly<{
   project: Project;
   folio: string;
-}) {
+}>) {
   return (
     <div className="book-project">
       <div className="page-content">

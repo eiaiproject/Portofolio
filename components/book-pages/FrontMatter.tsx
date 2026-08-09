@@ -2,7 +2,7 @@
  * Sheet 1 front — Front matter: the Manifesto/About page.
  * Copy is verbatim from the original `#about` section.
  */
-export default function FrontMatter({ folio }: { folio: string }) {
+export default function FrontMatter({ folio }: Readonly<{ folio: string }>) {
   return (
     <div className="book-frontmatter">
       <div className="page-content">
