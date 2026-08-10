@@ -6,9 +6,10 @@
  *
  * Records are stored as compact tuples (one field per element, order follows
  * the Project interface) and mapped back by `toProject()`. The four entries
- * share an identical field structure, so plain object literals would trip
- * SonarCloud's copy-paste detection (duplicated_lines_density); tuples keep
- * the data verbatim without repeating the structural tokens.
+ * share an identical field structure, so this file is excluded from
+ * SonarCloud's duplication detection (sonar.cpd.exclusions in
+ * sonar-project.properties): TS duplication detection normalizes string
+ * literals, so repeating-record structure is flagged regardless of content.
  */
 
 export interface Project {
