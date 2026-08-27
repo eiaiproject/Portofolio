@@ -113,18 +113,31 @@ Output goes to `out/`.
 
 No environment variables needed.
 
-## Quality Gate (SonarCloud)
+## Quality Gate
+
+Two independent gates protect `main`:
+
+### 1. Lint & Build (GitHub Actions)
 
 A GitHub Actions workflow (`.github/workflows/sonar-quality-gate.yml`) runs on every **push**, **pull request**, and **merge to `main`**:
 
 1. `npm ci` + `npm run lint` + `npm run build`
-2. SonarCloud scan with `sonar.qualitygate.wait=true` — the job **fails while the Quality Gate is red** (PRs from forks are skipped: the `SONAR_TOKEN` secret is not available to them)
 
-### One-time setup
+The job **fails** if lint or build break. PRs from forks run the same steps (build/lint are public; no secrets needed).
 
-1. Create the project at [SonarCloud](https://sonarcloud.io/projects/create) (free), link this GitHub repo, and copy its **organization** and **project key** into `sonar-project.properties` (defaults: org `eiaiproject`, key `eiaiproject_Portofolio`).
-2. Add a **`SONAR_TOKEN`** secret: repo **Settings → Secrets and variables → Actions**.
-3. Optional but recommended: in **Settings → Branches → main → Require status checks**, require the **SonarCloud Code Analysis** check so a PR can only be merged when the Quality Gate passes.
+### 2. SonarCloud (Automatic Analysis)
+
+Code-quality analysis runs separately via the **SonarCloud GitHub App** ([Automatic Analysis](https://docs.sonarcloud.io/advanced-setup/automatic-analysis/)) — the App analyzes the default branch and the five most recent active PRs on Sonar's own infrastructure using its own credentials, so no `SONAR_TOKEN` secret is required in this repository.
+
+The check appears in the PR **Checks** tab as **"SonarCloud Code Analysis"** once the analysis completes (usually within 1–2 minutes of opening a PR). Results are also visible on the [SonarCloud dashboard](https://sonarcloud.io/project/overview?id=eiaiproject_Portofolio).
+
+**Note**: Automatic Analysis only scans PRs from the same repository — fork PRs are skipped (no `SONAR_TOKEN` in fork secrets). If you need fork-PR gating, switch to CI-based analysis (requires a `SONAR_TOKEN` secret and the `SonarSource/sonarqube-scan-action` step).
+
+### One-time setup (already done on this repo)
+
+1. Create the project at [SonarCloud](https://sonarcloud.io/projects/create), link this GitHub repo, and confirm the **organization** (`eiaiproject`) and **project key** (`eiaiproject_Portofolio`) in `sonar-project.properties`.
+2. Install the **SonarCloud GitHub App** on the `eiaiproject` organization (or just this repo) — Automatic Analysis turns on automatically once the App has access.
+3. Optional but recommended: in repo **Settings → Branches → main → Require status checks**, require the **"SonarCloud Code Analysis"** check so a PR can only be merged when the Quality Gate passes.
 
 ## License
 

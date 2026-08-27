@@ -11,7 +11,6 @@ export default function TitlePage() {
         <h2
           id="book-heading-title"
           className="title-page-name"
-          aria-label="Title page"
           tabIndex={-1}
         >
           <span>ANGGIE</span>
