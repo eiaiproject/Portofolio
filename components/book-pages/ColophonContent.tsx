@@ -18,7 +18,7 @@ export default function ColophonContent({
   return (
     <div className="book-colophon">
       <div className="page-content">
-        <p className="book-lede">Colophon — End of Monograph Vol. 01</p>
+        <p className="book-lede">Colophon · End of Monograph Vol. 01</p>
         <h2
           id={`book-heading-colophon${idSuffix}`}
           className="book-page-title"

@@ -6,7 +6,7 @@ export default function CoverFront() {
   return (
     <div className="cover">
       <span className="cover-frame" aria-hidden="true" />
-      <p className="cover-label">A Monograph — Vol. 01</p>
+      <p className="cover-label">A Monograph · Vol. 01</p>
       <h1 id="book-heading-cover" tabIndex={-1}>
         <span>ANGGIE</span>
         <span className="cover-name">IRAWAN</span>

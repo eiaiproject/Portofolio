@@ -88,7 +88,7 @@ export const PROJECTS: Project[] = [
     "https://expend.pages.dev",
     "View Live App",
     "/expend-plate.png",
-    "Expend brand card — wordmark on a light sage-toned background with feature list",
+    "Expend brand card · wordmark on a light sage-toned background with feature list",
   ]),
   toProject([
     "invois",
@@ -105,7 +105,7 @@ export const PROJECTS: Project[] = [
        baked into the public/ asset and any CDN caches. Changing it now would
        orphan existing links, so the typo is preserved deliberately. */
     "/invoiz-plate.png",
-    "Invois brand card — wordmark on a cream background with olive accents and feature list",
+    "Invois brand card · wordmark on a cream background with olive accents and feature list",
   ]),
   toProject([
     "ledjer",
@@ -119,7 +119,7 @@ export const PROJECTS: Project[] = [
     "https://ledjer.id",
     "View Current Build",
     "/ledjer-plate.png",
-    "Ledjer brand card — wordmark on a warm cream background with wood-brown accents and feature list",
+    "Ledjer brand card · wordmark on a warm cream background with wood-brown accents and feature list",
   ]),
   toProject([
     "zipto",
@@ -133,6 +133,6 @@ export const PROJECTS: Project[] = [
     "https://zipto.pages.dev",
     "View Live App",
     "/zipto-plate.png",
-    "Zipto brand card — wordmark on a linen background with terracotta accents and feature list",
+    "Zipto brand card · wordmark on a linen background with terracotta accents and feature list",
   ]),
 ];

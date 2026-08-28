@@ -1,6 +1,6 @@
 <div align="center">
 
-# Anggie Irawan — AI-Assisted Product Builder
+# Anggie Irawan · AI-Assisted Product Builder
 
 **Turning rough ideas into simple working web products.**
 
@@ -21,12 +21,12 @@ Portfolio for Anggie Irawan, an AI-assisted product builder who turns rough idea
 
 ## Features
 
-- **Editorial monograph aesthetic** — Cream background, high-contrast ink, serif display type
-- **Interactive 3D book** — A hard cover that opens, page-flip animations, and one project per spread (desktop shows the 2-page spread; mobile shows the left plate first, slides to the text page, then flips)
-- **Responsive, mobile-first layout** — Fixed header with collapsible navigation (iOS-safe)
-- **Project case studies** — Each project with problem, lesson, tech stack, and screenshot (Expend, Invois, Ledjer, Zipto)
-- **Accessibility** — Skip link, ARIA labels, focus-visible outlines, reduced-motion support
-- **Fully static export** — Deployable to Cloudflare Pages, no server needed
+- **Editorial monograph aesthetic** · Cream background, high-contrast ink, serif display type
+- **Interactive 3D book** · A hard cover that opens, page-flip animations, and one project per spread (desktop shows the 2-page spread; mobile shows the left plate first, slides to the text page, then flips)
+- **Responsive, mobile-first layout** · Fixed header with collapsible navigation (iOS-safe)
+- **Project case studies** · Each project with problem, lesson, tech stack, and screenshot (Expend, Invois, Ledjer, Zipto)
+- **Accessibility** · Skip link, ARIA labels, focus-visible outlines, reduced-motion support
+- **Fully static export** · Deployable to Cloudflare Pages, no server needed
 
 ## Tech Stack
 
@@ -72,21 +72,25 @@ Output goes to `out/`.
 
 ```
 ├── app/
-│   ├── layout.tsx      # Root layout, fonts, metadata
-│   ├── page.tsx        # Book composition (8 sheets, state, keyboard, hash)
+│   ├── layout.tsx      # Root layout, fonts, metadata, JSON-LD
+│   ├── page.tsx        # Book composition (state, keyboard, hash, sheets)
 │   ├── not-found.tsx   # 404 page
 │   └── globals.css     # All styles and design tokens
 ├── components/
 │   ├── Book.tsx        # 3D flip engine (controlled)
 │   ├── SiteHeader.tsx  # Navigation
-│   └── book-pages/     # Cover, title page, manifesto, projects, colophon
+│   └── book-pages/     # Cover, title, manifesto, projects, colophon, contact
 ├── lib/
 │   └── projects.ts     # Project data (verbatim copy)
-├── .github/workflows/  # SonarCloud quality gate CI
+├── tests/
+│   └── audit/          # Playwright UI audit (visual + a11y + functional)
+├── playwright.config.ts
+├── eslint.config.mjs
+├── .github/workflows/  # Lint & Build CI
 ├── public/             # Images and favicon
-├── DESIGN.md           # Design system reference
-├── PRODUCT.md          # Product context and goals
 ├── sonar-project.properties
+├── DESIGN.md           # (gitignored) Design system reference for local dev
+├── PRODUCT.md          # (gitignored) Product context and goals
 └── package.json
 ```
 
@@ -97,7 +101,7 @@ Output goes to `out/`.
 | `npm run dev` | Start dev server |
 | `npm run build` | Build static site |
 | `npm start` | Serve production build |
-| `npm run lint` | Run ESLint (local only — see Quality Gate below) |
+| `npm run lint` | Run ESLint (local only · see Quality Gate below) |
 | `npm run clean` | Clear Next.js cache |
 | `npm run audit` | Playwright UI audit (regression check) |
 | `npm run audit:update` | Refresh Playwright baselines |
@@ -127,20 +131,20 @@ A GitHub Actions workflow (`.github/workflows/sonar-quality-gate.yml`) runs on e
 
 The job **fails** if the build breaks. PRs from forks run the same steps (no secrets needed).
 
-`npm run lint` is intentionally **not** part of CI: the `eslint-config-next@15.5` chain is incompatible with ESLint 9.30+ on Node 20+ (a known upstream issue with `@rushstack/eslint-patch@1.10+`), so the lint step throws before the runner can complete. The build step catches type errors and missing imports — the same things lint would have caught. Run `npm run lint` locally before pushing.
+`npm run lint` is intentionally **not** part of CI: the `eslint-config-next@15.5` chain is incompatible with ESLint 9.30+ on Node 20+ (a known upstream issue with `@rushstack/eslint-patch@1.10+`), so the lint step throws before the runner can complete. The build step catches type errors and missing imports · the same things lint would have caught. Run `npm run lint` locally before pushing.
 
 ### 2. SonarCloud (Automatic Analysis)
 
-Code-quality analysis runs separately via the **SonarCloud GitHub App** ([Automatic Analysis](https://docs.sonarcloud.io/advanced-setup/automatic-analysis/)) — the App analyzes the default branch and the five most recent active PRs on Sonar's own infrastructure using its own credentials, so no `SONAR_TOKEN` secret is required in this repository.
+Code-quality analysis runs separately via the **SonarCloud GitHub App** ([Automatic Analysis](https://docs.sonarcloud.io/advanced-setup/automatic-analysis/)) · the App analyzes the default branch and the five most recent active PRs on Sonar's own infrastructure using its own credentials, so no `SONAR_TOKEN` secret is required in this repository.
 
 The check appears in the PR **Checks** tab as **"SonarCloud Code Analysis"** once the analysis completes (usually within 1–2 minutes of opening a PR). Results are also visible on the [SonarCloud dashboard](https://sonarcloud.io/project/overview?id=eiaiproject_Portofolio).
 
-**Note**: Automatic Analysis only scans PRs from the same repository — fork PRs are skipped (no `SONAR_TOKEN` in fork secrets). If you need fork-PR gating, switch to CI-based analysis (requires a `SONAR_TOKEN` secret and the `SonarSource/sonarqube-scan-action` step).
+**Note**: Automatic Analysis only scans PRs from the same repository · fork PRs are skipped (no `SONAR_TOKEN` in fork secrets). If you need fork-PR gating, switch to CI-based analysis (requires a `SONAR_TOKEN` secret and the `SonarSource/sonarqube-scan-action` step).
 
 ### One-time setup (already done on this repo)
 
 1. Create the project at [SonarCloud](https://sonarcloud.io/projects/create), link this GitHub repo, and confirm the **organization** (`eiaiproject`) and **project key** (`eiaiproject_Portofolio`) in `sonar-project.properties`.
-2. Install the **SonarCloud GitHub App** on the `eiaiproject` organization (or just this repo) — Automatic Analysis turns on automatically once the App has access.
+2. Install the **SonarCloud GitHub App** on the `eiaiproject` organization (or just this repo) · Automatic Analysis turns on automatically once the App has access.
 3. Optional but recommended: in repo **Settings → Branches → main → Require status checks**, require the **"SonarCloud Code Analysis"** check so a PR can only be merged when the Quality Gate passes.
 
 ## License
@@ -152,7 +156,7 @@ MIT © 2026 Anggie Irawan
 A full visual regression + functional test suite lives in `tests/audit/visual.spec.ts`. It runs against the local static build (`out/`) on chromium at two viewports (Desktop 1280×800 + Pixel 5).
 
 ```bash
-npm run audit           # regression check — fails on any >2% pixel diff
+npm run audit           # regression check · fails on any >2% pixel diff
 npm run audit:update    # refresh baselines (after intentional UI changes)
 ```
 

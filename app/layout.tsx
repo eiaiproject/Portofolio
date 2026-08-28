@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     description:
       "From non-IT background to shipping products. Landing pages, prototypes, dashboards, and small web apps.",
     url: SITE_URL,
-    siteName: "Anggie Irawan — A Monograph",
+    siteName: "Anggie Irawan · A Monograph",
     locale: "en_US",
     type: "website",
     images: [
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Anggie Irawan — AI-Assisted Product Builder",
+        alt: "Anggie Irawan · AI-Assisted Product Builder",
       },
     ],
   },
@@ -150,7 +150,7 @@ export default function RootLayout({
                     "@type": "SoftwareApplication",
                     position: 4,
                     name: "Zipto",
-                    description: "ZIP to Markdown Converter — local-first PWA",
+                    description: "ZIP to Markdown Converter · local-first PWA",
                     applicationCategory: "DeveloperApplication",
                     url: "https://zipto.pages.dev",
                     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
