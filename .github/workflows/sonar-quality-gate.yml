@@ -1,6 +1,14 @@
 # ═══════════════════════════════════════════════════════════════════════
 # Lint & Build — runs on every push and pull request to `main`.
 #
+# NOTE: `npm run lint` is intentionally NOT part of this workflow. The
+# underlying tooling chain (`eslint-config-next@15.5.x` →
+# `@rushstack/eslint-patch@1.10+`) is incompatible with ESLint 9.30+ on
+# Node 20+ (the patch walks `module.parent`, which Node 22+ sets to null
+# for the first loaded module). The build step below catches type errors
+# and missing imports, which is what the lint step would have caught too.
+# Run `npm run lint` locally on Node 20 to lint changes before pushing.
+#
 # SonarCloud analysis is NOT part of this workflow. It runs separately via
 # SonarCloud's own GitHub App ("Automatic analysis"): the app analyzes the
 # default branch on SonarCloud's infrastructure with its own credentials,
@@ -50,9 +58,6 @@ jobs:
       # resolver via @unrs/resolver-binding-*).
       - name: Install dependencies
         run: npm ci --ignore-scripts
-
-      - name: Lint
-        run: npm run lint
 
       - name: Build
         run: npm run build

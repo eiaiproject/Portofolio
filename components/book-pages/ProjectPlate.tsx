@@ -24,7 +24,7 @@ export default function ProjectPlate({
           src={project.image}
           alt={project.imageAlt}
           width={1200}
-          height={630}
+          height={1600}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           onError={(e) => {

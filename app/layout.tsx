@@ -85,6 +85,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${spaceMono.variable}`}>
+      <head>
+        {/* Preload project plates so they are decoded before the reader
+            flips to each spread (plates are 3D-rotated off-screen at rest,
+            so lazy loading never fires the IntersectionObserver in time). */}
+        <link rel="preload" as="image" href="/expend-plate.png" />
+        <link rel="preload" as="image" href="/invoiz-plate.png" />
+        <link rel="preload" as="image" href="/ledjer-plate.png" />
+        <link rel="preload" as="image" href="/zipto-plate.png" />
+      </head>
       <body>
         <main id="main-content" tabIndex={-1}>
           {children}

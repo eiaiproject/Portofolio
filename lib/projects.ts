@@ -101,6 +101,9 @@ export const PROJECTS: Project[] = [
     "Stack: React, TypeScript, Vite, React Router, IndexedDB, jsPDF, PWA",
     "https://invois.pages.dev",
     "View Live App",
+    /* NOTE: filename is intentionally "invoiz-plate.png" (not "invois") —
+       baked into the public/ asset and any CDN caches. Changing it now would
+       orphan existing links, so the typo is preserved deliberately. */
     "/invoiz-plate.png",
     "Invois brand card — wordmark on a cream background with olive accents and feature list",
   ]),
