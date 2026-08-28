@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "clean": "next clean"
+    "clean": "next clean",
+    "audit": "playwright test",
+    "audit:update": "playwright test --update-snapshots"
   },
   "dependencies": {
     "next": "^15.4.9",
@@ -16,6 +18,7 @@
     "reicon-react": "^1.1.302"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

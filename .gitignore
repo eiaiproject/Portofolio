@@ -10,3 +10,7 @@ tsconfig.tsbuildinfo
 temp_ledjer/
 
 graphify-out/
+
+# Playwright audit artifacts (baselines stay; reports and diffs ignored)
+/audit-report/
+/playwright-report/

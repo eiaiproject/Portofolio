@@ -97,8 +97,10 @@ Output goes to `out/`.
 | `npm run dev` | Start dev server |
 | `npm run build` | Build static site |
 | `npm start` | Serve production build |
-| `npm run lint` | Run ESLint |
+| `npm run lint` | Run ESLint (local only — see Quality Gate below) |
 | `npm run clean` | Clear Next.js cache |
+| `npm run audit` | Playwright UI audit (regression check) |
+| `npm run audit:update` | Refresh Playwright baselines |
 
 ## Deployment
 
@@ -144,3 +146,18 @@ The check appears in the PR **Checks** tab as **"SonarCloud Code Analysis"** onc
 ## License
 
 MIT © 2026 Anggie Irawan
+
+## UI Audit (Playwright)
+
+A full visual regression + functional test suite lives in `tests/audit/visual.spec.ts`. It runs against the local static build (`out/`) on chromium at two viewports (Desktop 1280×800 + Pixel 5).
+
+```bash
+npm run audit           # regression check — fails on any >2% pixel diff
+npm run audit:update    # refresh baselines (after intentional UI changes)
+```
+
+The suite covers every page (cover, title, about, work, 4 projects, capabilities, process, contact, 404), keyboard navigation, mobile menu, and live-site smoke against https://anggieirawan.my.id. Baselines (35 PNGs, ~11 MB) are committed under `tests/audit/visual.spec.ts-snapshots/` for diff detection. First-time setup:
+
+```bash
+npx playwright install chromium
+```
