@@ -8,6 +8,8 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3176C8?logo=typescript)](https://www.typescriptlang.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=eiaiproject_Portofolio&metric=alert_status)](https://sonarcloud.io/dashboard?id=eiaiproject_Portofolio)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=eiaiproject_Portofolio&metric=coverage)](https://sonarcloud.io/dashboard?id=eiaiproject_Portofolio)
 
 [Live Demo](https://anggieirawan.my.id)
 
