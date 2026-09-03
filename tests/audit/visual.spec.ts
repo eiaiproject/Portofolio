@@ -25,19 +25,30 @@ const SITE = "https://anggieirawan.my.id";
 
 // ── Helpers ────────────────────────────────────────────────────────
 
-/** Wait for the 3D flip animation to settle by observing the indicator text. */
-async function flipAndWait(page: Page): Promise<void> {
+/**
+ * Wait for a flip to settle. `previous` must be captured before the
+ * flip-triggering action — the indicator updates synchronously with
+ * `setCurrent`, so reading it afterwards already returns the new page.
+ *
+ * The indicator change only proves the flip STARTED: the in-flight class
+ * (`.sheet-flipping` for adjacent flips, `.book-fast` for long jumps) stays
+ * in the DOM until the animation completes, so we wait for it to appear and
+ * then clear. That is the same moment the input lock releases.
+ */
+async function flipAndWait(page: Page, previous: string): Promise<void> {
   const indicator = page.locator(".book-indicator");
-  const before = await indicator.textContent();
-  // The indicator updates synchronously when `setCurrent` fires —
-  // wait until it actually changes (or 1.5 s safety).
-  await expect(indicator).not.toHaveText(before ?? "", { timeout: 1_500 });
+  const inflight = page.locator(".sheet-flipping, .book-fast");
+  await expect(indicator).not.toHaveText(previous, { timeout: 1_500 });
+  await expect(inflight).toHaveCount(1, { timeout: 1_500 });
+  await expect(inflight).toHaveCount(0, { timeout: 3_000 });
 }
 
 /** Click Next/Prev and wait for the flip to land. */
 async function clickNextAndWait(page: Page): Promise<void> {
+  const indicator = page.locator(".book-indicator");
+  const previous = (await indicator.textContent()) ?? "";
   await page.getByRole("button", { name: "Next page" }).click();
-  await flipAndWait(page);
+  await flipAndWait(page, previous);
 }
 
 /** Cold-load the app and wait for it to settle. */
@@ -76,8 +87,10 @@ async function navTo(page: Page, label: string): Promise<void> {
   await openMobileMenu(page);
   const link = page.getByRole("link", { name: label, exact: true }).first();
   await link.waitFor({ state: "visible", timeout: 5_000 });
+  const indicator = page.locator(".book-indicator");
+  const previous = (await indicator.textContent()) ?? "";
   await link.click();
-  await flipAndWait(page);
+  await flipAndWait(page, previous);
 }
 
 /** Navigate to a page and take a screenshot (desktop regression helper). */
@@ -92,98 +105,86 @@ async function navToAndScreenshot(
 
 // ── 1. Visual regression ───────────────────────────────────────────
 
-test.describe("Visual — every page (desktop)", () => {
-  test.beforeEach(async ({ page }) => {
-    await boot(page);
-  });
+/**
+ * Register the per-viewport visual regression suite. The pages captured on
+ * every viewport (cover, title, about, work, contact) are defined once and
+ * the viewport name parameterizes the screenshot filenames; desktop-only
+ * spreads (each project page) are added when viewport is "desktop".
+ */
+function visualPages(viewport: "desktop" | "mobile"): void {
+  test.describe(`Visual — every page (${viewport})`, () => {
+    test.beforeEach(async ({ page }) => {
+      await boot(page);
+    });
 
-  test("cover", async ({ page }) => {
-    await expect(page).toHaveScreenshot("desktop-cover.png");
-  });
+    test("cover", async ({ page }) => {
+      await expect(page).toHaveScreenshot(`${viewport}-cover.png`);
+    });
 
-  test("title", async ({ page }) => {
-    // Cover → title via Next.
-    await clickNextAndWait(page);
-    await expect(page).toHaveScreenshot("desktop-title.png");
-  });
-
-  test("about (manifesto)", async ({ page }) => {
-    await navToAndScreenshot(page, "About", "desktop-about.png");
-  });
-
-  test("work (first project spread)", async ({ page }) => {
-    await navToAndScreenshot(page, "Work", "desktop-work.png");
-  });
-
-  test("expend", async ({ page }) => {
-    await navToAndScreenshot(page, "Work", "desktop-expend.png");
-  });
-
-  test("invois", async ({ page }) => {
-    // Work spread is project 1 (Expend). Next → Invois.
-    await navTo(page, "Work");
-    await clickNextAndWait(page);
-    await expect(page).toHaveScreenshot("desktop-invois.png");
-  });
-
-  test("ledjer", async ({ page }) => {
-    await navTo(page, "Work");
-    await clickNextAndWait(page);
-    await clickNextAndWait(page);
-    await expect(page).toHaveScreenshot("desktop-ledjer.png");
-  });
-
-  test("zipto", async ({ page }) => {
-    await navTo(page, "Work");
-    for (let i = 0; i < 3; i++) {
+    test("title", async ({ page }) => {
+      // Cover → title via Next.
       await clickNextAndWait(page);
+      await expect(page).toHaveScreenshot(`${viewport}-title.png`);
+    });
+
+    test("about", async ({ page }) => {
+      await navToAndScreenshot(page, "About", `${viewport}-about.png`);
+    });
+
+    test("work (first project spread)", async ({ page }) => {
+      await navToAndScreenshot(page, "Work", `${viewport}-work.png`);
+    });
+
+    // Desktop renders each project as its own spread; mobile collapses to
+    // a single scrollable page, so only the shared pages are captured.
+    if (viewport === "desktop") {
+      test("expend", async ({ page }) => {
+        await navToAndScreenshot(page, "Work", "desktop-expend.png");
+      });
+
+      test("invois", async ({ page }) => {
+        // Work spread is project 1 (Expend). Next → Invois.
+        await navTo(page, "Work");
+        await clickNextAndWait(page);
+        await expect(page).toHaveScreenshot("desktop-invois.png");
+      });
+
+      test("ledjer", async ({ page }) => {
+        await navTo(page, "Work");
+        await clickNextAndWait(page);
+        await clickNextAndWait(page);
+        await expect(page).toHaveScreenshot("desktop-ledjer.png");
+      });
+
+      test("zipto", async ({ page }) => {
+        await navTo(page, "Work");
+        for (let i = 0; i < 3; i++) {
+          await clickNextAndWait(page);
+        }
+        await expect(page).toHaveScreenshot("desktop-zipto.png");
+      });
+
+      test("capabilities (left of final spread)", async ({ page }) => {
+        await navToAndScreenshot(
+          page,
+          "Capabilities",
+          "desktop-capabilities.png"
+        );
+      });
+
+      test("process (same spread as capabilities)", async ({ page }) => {
+        await navToAndScreenshot(page, "Process", "desktop-process.png");
+      });
     }
-    await expect(page).toHaveScreenshot("desktop-zipto.png");
-  });
 
-  test("capabilities (left of final spread)", async ({ page }) => {
-    await navToAndScreenshot(
-      page,
-      "Capabilities",
-      "desktop-capabilities.png"
-    );
+    test("contact (last page)", async ({ page }) => {
+      await navToAndScreenshot(page, "Contact", `${viewport}-contact.png`);
+    });
   });
+}
 
-  test("process (same spread as capabilities)", async ({ page }) => {
-    await navToAndScreenshot(page, "Process", "desktop-process.png");
-  });
-
-  test("contact (last page)", async ({ page }) => {
-    await navToAndScreenshot(page, "Contact", "desktop-contact.png");
-  });
-});
-
-test.describe("Visual — every page (mobile)", () => {
-  test.beforeEach(async ({ page }) => {
-    await boot(page);
-  });
-
-  test("cover", async ({ page }) => {
-    await expect(page).toHaveScreenshot("mobile-cover.png");
-  });
-
-  test("title", async ({ page }) => {
-    await clickNextAndWait(page);
-    await expect(page).toHaveScreenshot("mobile-title.png");
-  });
-
-  test("about", async ({ page }) => {
-    await navToAndScreenshot(page, "About", "mobile-about.png");
-  });
-
-  test("work", async ({ page }) => {
-    await navToAndScreenshot(page, "Work", "mobile-work.png");
-  });
-
-  test("contact", async ({ page }) => {
-    await navToAndScreenshot(page, "Contact", "mobile-contact.png");
-  });
-});
+visualPages("desktop");
+visualPages("mobile");
 
 test.describe("Visual — special states", () => {
   test("404 — not found (desktop)", async ({ page }) => {
@@ -289,19 +290,22 @@ test.describe("Functional — book controls (desktop)", () => {
 
   test("ArrowRight keyboard flips forward", async ({ page }) => {
     await boot(page);
-    await page.keyboard.press("ArrowRight");
-    await flipAndWait(page);
     const indicator = page.locator(".book-indicator");
+    const previous = (await indicator.textContent()) ?? "";
+    await page.keyboard.press("ArrowRight");
+    await flipAndWait(page, previous);
     await expect(indicator).not.toContainText(/cover/i);
   });
 
   test("ArrowLeft keyboard flips backward", async ({ page }) => {
     await boot(page);
-    await page.keyboard.press("ArrowRight");
-    await flipAndWait(page);
-    await page.keyboard.press("ArrowLeft");
-    await flipAndWait(page);
     const indicator = page.locator(".book-indicator");
+    let previous = (await indicator.textContent()) ?? "";
+    await page.keyboard.press("ArrowRight");
+    await flipAndWait(page, previous);
+    previous = (await indicator.textContent()) ?? "";
+    await page.keyboard.press("ArrowLeft");
+    await flipAndWait(page, previous);
     await expect(indicator).toContainText(/cover/i);
   });
 });
