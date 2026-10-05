@@ -24,7 +24,7 @@ Portfolio for Anggie Irawan, an AI-assisted product builder who turns rough idea
 ## Features
 
 - **Editorial monograph aesthetic** · Cream background, high-contrast ink, serif display type
-- **Interactive 3D book** · A hard cover that opens, page-flip animations, and one project per spread (desktop shows the 2-page spread; mobile shows the left plate first, slides to the text page, then flips)
+- **Interactive 3D book** · A hard cover that opens, page-flip animations, and one project per spread (desktop shows the 2-page spread; mobile centers the same 3D book on the text page, which carries its own screenshot)
 - **Responsive, mobile-first layout** · Fixed header with collapsible navigation (iOS-safe)
 - **Project case studies** · Each project with problem, lesson, tech stack, and screenshot (Expend, Invois, Ledjer, Zipto)
 - **Accessibility** · Skip link, ARIA labels, focus-visible outlines, reduced-motion support
@@ -83,7 +83,7 @@ Output goes to `out/`.
 │   ├── SiteHeader.tsx  # Navigation
 │   └── book-pages/     # Cover, title, manifesto, projects, colophon, contact
 ├── lib/
-│   └── projects.ts     # Project data (verbatim copy)
+│   └── projects.ts     # Project data (synced with live GitHub repos)
 ├── tests/
 │   └── audit/          # Playwright UI audit (visual + a11y + functional)
 ├── playwright.config.ts
@@ -91,8 +91,8 @@ Output goes to `out/`.
 ├── .github/workflows/  # Lint & Build CI
 ├── public/             # Images and favicon
 ├── sonar-project.properties
-├── DESIGN.md           # (gitignored) Design system reference for local dev
-├── PRODUCT.md          # (gitignored) Product context and goals
+├── DESIGN.md           # Design system reference for local dev
+├── PRODUCT.md          # Product context and goals
 └── package.json
 ```
 
@@ -162,7 +162,7 @@ npm run audit           # regression check · fails on any >2% pixel diff
 npm run audit:update    # refresh baselines (after intentional UI changes)
 ```
 
-The suite covers every page (cover, title, about, work, 4 projects, capabilities, process, contact, 404), keyboard navigation, mobile menu, and live-site smoke against https://anggieirawan.my.id. Baselines (35 PNGs, ~11 MB) are committed under `tests/audit/visual.spec.ts-snapshots/` for diff detection. First-time setup:
+The suite covers every page (cover, title, about, work, 4 projects, capabilities, process, contact, 404), keyboard navigation, mobile menu, and live-site smoke against https://anggieirawan.my.id. Baselines (70 PNGs, ~21 MB, win32 + darwin) are committed under `tests/audit/visual.spec.ts-snapshots/` for diff detection. First-time setup:
 
 ```bash
 npx playwright install chromium
