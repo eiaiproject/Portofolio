@@ -1,7 +1,4 @@
-/* ═══════════════════════════════════════════════
-   Anggie Irawan — A Monograph
-   Design tokens & global styles
-   ═══════════════════════════════════════════════ */
+/* Anggie Irawan monograph: design tokens and global styles. */
 
 :root {
   --bg: #f4f1ea;
@@ -93,7 +90,7 @@
   }
 }
 
-/* ═══ Reset ═══ */
+/* Reset. */
 
 *,
 *::before,
@@ -120,7 +117,7 @@ body {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }
 
-/* ═══ Grain overlay ═══ */
+/* Grain overlay. */
 
 body::before {
   content: '';
@@ -132,7 +129,7 @@ body::before {
   opacity: 0.25;
 }
 
-/* ═══ Site header (skip link + nav wrapper) ═══ */
+/* Site header (skip link + nav wrapper). */
 
 .site-header {
   position: fixed;
@@ -144,7 +141,7 @@ body::before {
   padding-top: env(safe-area-inset-top);
 }
 
-/* ═══ Skip link ═══ */
+/* Skip link. */
 
 .skip-link {
   position: absolute;
@@ -166,7 +163,7 @@ body::before {
   top: env(safe-area-inset-top);
 }
 
-/* ═══ Navigation ═══ */
+/* Navigation. */
 
 .site-nav {
   height: var(--nav-height);
@@ -237,7 +234,7 @@ body::before {
   transition: color 0.2s ease, background 0.2s ease;
 }
 
-/* ═══ Mobile nav toggle (hidden on desktop) ═══ */
+/* Mobile nav toggle (hidden on desktop). */
 
 .nav-toggle {
   display: none;
@@ -356,7 +353,7 @@ body::before {
   outline-offset: 2px;
 }
 
-/* ═══ Lock body scroll when mobile menu open ═══ */
+/* Lock body scroll when mobile menu open. */
 
 body.nav-open {
   position: fixed;
@@ -367,7 +364,7 @@ body.nav-open {
   overflow: hidden;
 }
 
-/* ═══ Main ═══ */
+/* Main. */
 
 main {
   padding-top: calc(var(--nav-height) + env(safe-area-inset-top));
@@ -375,7 +372,7 @@ main {
   min-height: 100dvh;
 }
 
-/* ═══ Buttons ═══ */
+/* Buttons. */
 
 .btn {
   display: inline-flex;
@@ -433,7 +430,7 @@ main {
   }
 }
 
-/* ═══ Project page content (reused inside book pages) ═══ */
+/* Project page content (reused inside book pages). */
 
 .project-status {
   display: inline-flex;
@@ -481,6 +478,28 @@ main {
   padding-right: 0.4rem;
   padding-top: 0.2rem;
   color: var(--ink);
+}
+
+/* Explanatory prose reads justified (print-monograph convention).
+   Hyphenation stays off by owner request: words never break, and the
+   looser word spacing that follows is accepted as-is.
+   Headings, mono labels, quotes, captions, and buttons stay as designed. */
+.manifesto-body p,
+.book-project .dropcap,
+.capability-card .cap-desc,
+.process-step p,
+.step-detail {
+  text-align: justify;
+  -webkit-hyphens: none;
+  hyphens: none;
+}
+
+/* Colophon columns are too narrow for even word spacing, so the service
+   and workflow copy stays left-aligned while the rest keeps justify. */
+.book-colophon .cap-desc,
+.book-colophon .process-step p,
+.book-colophon .step-detail {
+  text-align: left;
 }
 
 .project-highlights {
@@ -554,7 +573,7 @@ main {
   outline-offset: 2px;
 }
 
-/* ═══ Visual frame (project screenshot) ═══ */
+/* Visual frame (project screenshot). */
 
 .visual-frame {
   aspect-ratio: 8 / 5;
@@ -570,6 +589,12 @@ main {
 
 /* Portrait brand-card plates (1200×1600) fill the plate page exactly.
    Frame is 3/4 (book page ratio); other visual frames stay 8/5. */
+.visual-frame picture {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .visual-frame img {
   width: 100%;
   height: 100%;
@@ -600,7 +625,7 @@ main {
   }
 }
 
-/* ═══ Manifesto / About ═══ */
+/* Manifesto / About. */
 
 .manifesto-pull {
   font-family: var(--font-display);
@@ -633,7 +658,7 @@ main {
   }
 }
 
-/* ═══ Capabilities ═══ */
+/* Capabilities. */
 
 .capabilities-grid {
   display: grid;
@@ -695,7 +720,7 @@ main {
   line-height: 1.5;
 }
 
-/* ═══ Process / Workflow ═══ */
+/* Process / Workflow. */
 
 .process-track {
   display: grid;
@@ -759,7 +784,7 @@ main {
   }
 }
 
-/* ═══ Contact actions (reused on the dark colophon panel) ═══ */
+/* Contact actions (reused on the dark colophon panel). */
 
 .contact-actions {
   display: flex;
@@ -783,7 +808,24 @@ main {
   outline-color: var(--bg);
 }
 
-/* ═══ Footer ═══ */
+/* Shown only when JavaScript is off (the book needs JS to turn pages).
+   Sits below the fixed header, never beneath it. */
+.noscript-note {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  color: var(--ink);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-strong);
+  padding: 0.9rem var(--section-pad-x);
+  text-align: center;
+  position: relative;
+  z-index: 60;
+  margin-top: calc(var(--nav-height) + env(safe-area-inset-top));
+}
+
+/* Footer. */
 
 .site-footer {
   border-top: 1px solid var(--border);
@@ -808,9 +850,7 @@ main {
   }
 }
 
-/* ═══════════════════════════════════════════════
-   BOOK MODE — interactive 3D flip book
-   ═══════════════════════════════════════════════ */
+/* Book mode: interactive 3D flip book. */
 
 .book-page {
   min-height: calc(100vh - var(--nav-height) - env(safe-area-inset-top));
@@ -934,7 +974,7 @@ main {
   pointer-events: none;
 }
 
-/* ── Sheets ── */
+/* Sheets. */
 
 .sheet {
   position: absolute;
@@ -991,7 +1031,7 @@ main {
   }
 }
 
-/* ── Lighting (opacity-only, synced to the flip) ── */
+/* Lighting (opacity-only, synced to the flip). */
 
 .sheet-front::before,
 .sheet-front::after {
@@ -1040,7 +1080,7 @@ main {
   100% { opacity: 0; }
 }
 
-/* ── Page faces ── */
+/* Page faces. */
 
 .page-content {
   position: absolute;
@@ -1095,7 +1135,7 @@ main {
   color: var(--ink-faint);
 }
 
-/* ── Cover ── */
+/* Cover. */
 
 .cover {
   position: absolute;
@@ -1171,7 +1211,7 @@ main {
   opacity: 0.7;
 }
 
-/* ── Endpaper & verso (decorative backs) ── */
+/* Endpaper & verso (decorative backs). */
 
 .endpaper {
   position: absolute;
@@ -1232,7 +1272,7 @@ main {
   color: var(--ink-faint);
 }
 
-/* ── Page wrappers ── */
+/* Page wrappers. */
 
 .book-frontmatter,
 .book-project,
@@ -1260,9 +1300,12 @@ main {
   margin-bottom: 1.5rem;
   line-height: 1.7;
   max-width: 40ch;
+  /* Even line lengths for the wrapped standfirst (one stranded word
+     otherwise dangles on the last line). */
+  text-wrap: balance;
 }
 
-/* ── Title page (cream paper — brand mockup) ── */
+/* Title page (cream paper — brand mockup). */
 
 .title-page {
   background: var(--bg);
@@ -1438,7 +1481,7 @@ main {
   }
 }
 
-/* ═══ Project plate (verso — left page of a spread) ═══ */
+/* Project plate (verso — left page of a spread). */
 
 .plate {
   position: absolute;
@@ -1611,7 +1654,7 @@ main {
   }
 }
 
-/* ── Closing contact page (dark — echoes the hard cover) ── */
+/* Closing contact page (dark — echoes the hard cover). */
 
 .contact-page {
   background: var(--ink);
@@ -1645,7 +1688,7 @@ main {
   color: rgba(244, 241, 234, 0.6);
 }
 
-/* ── Controls ── */
+/* Controls. */
 
 .book-controls {
   display: flex;
@@ -1653,6 +1696,15 @@ main {
   justify-content: center;
   gap: 1.25rem;
   flex-wrap: wrap;
+}
+
+/* Desktop spread is twice as wide as the control cluster, so the buttons
+   read as crowded against the book shadow without their own top margin
+   (mobile already carries one below). Horizontal rhythm untouched. */
+@media (min-width: 1024px) {
+  .book-controls {
+    margin-top: 2rem;
+  }
 }
 
 @media (max-width: 767px) {
@@ -1675,7 +1727,7 @@ main {
   white-space: nowrap;
 }
 
-/* ═══ Accessibility ═══ */
+/* Accessibility. */
 
 a:focus-visible,
 button:focus-visible {
@@ -1686,6 +1738,19 @@ button:focus-visible {
 a:focus:not(:focus-visible),
 button:focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Page headings are programmatic focus landings (tabIndex -1, focused after
+   each flip). Silent for pointer users, visible for keyboard users. */
+.cover h1:focus-visible,
+.contact-title:focus-visible {
+  outline: 2px solid var(--bg);
+  outline-offset: 4px;
+}
+
+.title-page-name:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
 }
 
 /* Screen reader only */
@@ -1701,7 +1766,7 @@ button:focus:not(:focus-visible) {
   border: 0;
 }
 
-/* ═══ Reduced motion ═══ */
+/* Reduced motion. */
 
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -1754,7 +1819,7 @@ button:focus:not(:focus-visible) {
   }
 }
 
-/* ═══ 404 / Not found ═══ */
+/* 404 / Not found. */
 
 .not-found-root {
   min-height: 100vh;
@@ -1818,4 +1883,113 @@ button:focus:not(:focus-visible) {
   outline-offset: 2px;
 }
 
-/* ═══ Print ═══ */
+/* Print: linearize the book into stacked pages, hide chrome. */
+@media print {
+  body::before,
+  .site-header,
+  .book-controls,
+  .book-shadow,
+  .book-base {
+    display: none !important;
+  }
+
+  main {
+    padding-top: 0;
+    min-height: auto;
+  }
+
+  .book-page {
+    display: block;
+    min-height: auto;
+    padding: 0;
+  }
+
+  .book-wrap.book-open {
+    transform: none;
+  }
+
+  .book-scene {
+    width: 100%;
+    max-width: 44rem;
+    margin: 0 auto;
+    aspect-ratio: auto;
+  }
+
+  .book,
+  .sheet,
+  .sheet-front,
+  .sheet-back,
+  .cover,
+  .contact-page,
+  .book-frontmatter,
+  .book-project,
+  .book-colophon,
+  .title-page,
+  .plate,
+  .page-content {
+    position: static;
+    transform: none !important;
+  }
+
+  .book {
+    height: auto;
+  }
+
+  .sheet {
+    break-inside: avoid;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Decorative backs would print as near-blank pages; plates stay. */
+  .sheet-back:has(.verso),
+  .sheet-back:has(.endpaper) {
+    display: none;
+  }
+
+  .sheet-front,
+  .sheet-back,
+  .page-content {
+    overflow: visible;
+  }
+
+  .page-content {
+    max-height: none;
+  }
+
+  /* Absolute-positioned furniture has no frame to anchor to on paper. */
+  .folio,
+  .title-page-rule,
+  .title-page-brand,
+  .cover-frame,
+  .contact-frame,
+  .endpaper-note {
+    display: none;
+  }
+
+  /* Dark boards print light so text survives without background graphics. */
+  .cover,
+  .contact-page {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--border-strong);
+  }
+
+  .cover h1,
+  .contact-title,
+  .title-page-name {
+    color: var(--ink);
+  }
+
+  .cover-sub,
+  .cover-tagline,
+  .cover-hint,
+  .cover-label {
+    color: var(--ink-muted);
+    opacity: 1;
+  }
+
+  .contact-actions .btn {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+}

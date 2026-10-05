@@ -30,6 +30,7 @@ spacing:
   section-pad-y: "5rem (mobile) / 6rem (desktop)"
   section-pad-x: "1.5rem (mobile) / 5rem (desktop) / 8rem (wide)"
   content-max: "72ch"
+dials: "ENERGY 2 / RHYTHM 1 / MOTION 2"
 ---
 
 # Design System: Anggie Irawan — A Monograph
@@ -256,3 +257,18 @@ Cover 0 · Title 1 · About 2 · Work 3 · Capabilities/Process/Contact 7. Hashe
 
 - The desktop spread centering uses `translateX(50%)` (the wrap is flex-centered, so +50% puts the spine at the container center). If the spread looks off-center in a browser, this is the value to flip.
 - Two opacity-only lighting gradients (flip-darken / page-land) are the only sanctioned gradient exceptions beyond the book's soft shadow. Remove them if they cause artifacts.
+
+---
+
+## 12. Antislop decision log (one line per decision)
+
+Reading this as: printed-monograph portfolio in interactive book form for founders and small-business readers, cream paper and ink with serif display and mono labels, dial ENERGY 2 / RHYTHM 1 / MOTION 2.
+
+- Arrows: arrows are direction cues only (Prev/Next movement, external-link exit, tagline flow), sized 16px inline, never a button identity on their own.
+- Status pulse: the 3s dot pulse signals a live project status and nothing else; the flip choreography is the only other motion, matching MOTION 2.
+- Uniform cards: equal-weight services and workflow steps share one flat card treatment because no item outranks another.
+- Tracking extremes: 0.30em and wider tracking is reserved for cover and spine furniture (cover hint, vertical brand note), a print convention, never body or headings.
+- Rhythm uniformity: identical book-page frames are the deliberate choice of a bound volume (RHYTHM 1), not a template accident.
+- Justified prose: explanatory paragraphs (manifesto, project description) are justified with hyphenation off, following the print-monograph convention for body text; words never break and the looser spacing is accepted. Colophon columns stay left-aligned, their measure too narrow for even spacing.
+- Balanced lede wrap: the mono standfirst uses balanced wrapping so its lines break evenly instead of stranding one word on the last line.
+- Desktop control breathing room: the Prev/Next cluster carries its own top margin on wide screens so it clears the book shadow; horizontal rhythm unchanged.
