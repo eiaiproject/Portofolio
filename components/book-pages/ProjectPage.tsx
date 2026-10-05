@@ -54,20 +54,28 @@ export default function ProjectPage({
         {/* Mobile-only screenshot — hidden on wide screens, where the plate
             on the facing page shows instead. */}
         <div className="visual-frame project-mobile-shot">
-          <img
-            src={project.image}
-            alt={project.imageAlt}
-            width={1200}
-            height={1600}
-            loading="lazy"
-            decoding="async"
-            onError={(e) => {
-              const img = e.currentTarget;
-              img.style.display = "none";
-              const placeholder = img.nextElementSibling as HTMLElement | null;
-              if (placeholder) placeholder.style.display = "block";
-            }}
-          />
+          <picture>
+            <source
+              srcSet={project.image.replace(/\.png$/, ".webp")}
+              type="image/webp"
+            />
+            <img
+              src={project.image}
+              alt={project.imageAlt}
+              width={1200}
+              height={1600}
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                const img = e.currentTarget;
+                img.style.display = "none";
+                const placeholder = img
+                  .closest(".visual-frame")
+                  ?.querySelector<HTMLElement>(".placeholder-text");
+                if (placeholder) placeholder.style.display = "block";
+              }}
+            />
+          </picture>
           <span className="placeholder-text" style={{ display: "none" }}>
             [ {project.name} Brand Card ]
           </span>

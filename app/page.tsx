@@ -17,7 +17,7 @@ import { PROJECTS } from "@/lib/projects";
 /* Flip transition duration — must match the CSS transition (--flip-ms). */
 const FLIP_MS = 1100;
 
-/* ── Email parts (constructed at runtime, never in static HTML) ── */
+/* Email parts (constructed at runtime, never in static HTML). */
 const EMAIL_USER = "irawananggie";
 const EMAIL_DOMAIN = "gmail.com";
 function getEmail() {
@@ -73,7 +73,7 @@ export default function Home() {
     currentRef.current = current;
   }, [current]);
 
-  /* ── All sheets stay mounted so every page remains in the DOM (SEO).
+  /* All sheets stay mounted so every page remains in the DOM (SEO).
      Real-book spread model: a page's image plate is printed on the back
      of the PREVIOUS sheet, so its spread shows [plate] + [text] together
      on wide screens. On narrow screens the book stays centered, showing
@@ -82,7 +82,7 @@ export default function Home() {
      [Services + Workflow] + [Contact]; on narrow screens Services +
      Workflow becomes its own recto page just before Contact, so the
      colophon stays reachable on mobile and "LET'S SHIP V1." is always
-     the last page the reader lands on. ── */
+     the last page the reader lands on. */
   const sheets = useMemo<BookSheet[]>(() => {
     const entries = PROJECTS.map((project, i) => ({
       project,
@@ -164,20 +164,20 @@ export default function Home() {
      is appended — the mount-time hash targets are computed against them. */
   const baseSheetsRef = useRef(sheets);
 
-  /* ── Flip completion (idempotent) — called from the book's transitionend
-     and by the fallback timer below. Releases the input lock. ── */
+  /* Flip completion (idempotent) — called from the book's transitionend
+     and by the fallback timer below. Releases the input lock. */
   const finishFlip = useCallback(() => {
     if (!flipRef.current) return;
     flipRef.current = null;
     setFlip(null);
   }, []);
 
-  /* ── Flip with input lock (never interrupt a mid-flip).
+  /* Flip with input lock (never interrupt a mid-flip).
      Returns false when the flip is rejected (mid-animation or out of range).
      The visual `current` updates immediately so the CSS transition runs;
      `flip.from` keeps the settled page until completion. Completion is
      reported by Book via transitionend (or a fast-jump timer); the timeout
-     here is only the safety net. ── */
+     here is only the safety net. */
   const flipTo = useCallback(
     (next: number): boolean => {
       if (flipRef.current) return false;
@@ -195,7 +195,7 @@ export default function Home() {
     [maxPage, finishFlip]
   );
 
-  /* ── Spread navigation: Prev / Next flip exactly one sheet. ── */
+  /* Spread navigation: Prev / Next flip exactly one sheet. */
   const goNext = useCallback(() => {
     flipTo(currentRef.current + 1);
   }, [flipTo]);
@@ -204,10 +204,10 @@ export default function Home() {
     flipTo(currentRef.current - 1);
   }, [flipTo]);
 
-  /* ── Nav bridge: book pages for the header links. The link id keeps the
+  /* Nav bridge: book pages for the header links. The link id keeps the
      URL hash meaningful — capabilities / process / contact each keep
      their own hash (on narrow screens capabilities / process land on the
-     colophon page while contact stays the final page). ── */
+     colophon page while contact stays the final page). */
   const handleNavigate = useCallback(
     (page: number, linkId?: string) => {
       /* Only touch the hash when the navigation actually happened. */
@@ -217,8 +217,8 @@ export default function Home() {
     [flipTo]
   );
 
-  /* ── Keyboard: ArrowRight / ArrowLeft flip the book. Ignored while typing
-     in form fields (defensive — the book has none). ── */
+  /* Keyboard: ArrowRight / ArrowLeft flip the book. Ignored while typing
+     in form fields (defensive — the book has none). */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -243,7 +243,7 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, [goNext, goPrev]);
 
-  /* ── Viewport + deep link on mount (single pass, one paint) ──
+  /* Viewport + deep link on mount (single pass, one paint).
      Reads the narrow-screen flag and applies any URL hash together, so a
      deep link lands on the FINAL index immediately: on narrow screens
      capabilities / process target one sheet further (the colophon page),
@@ -304,7 +304,7 @@ export default function Home() {
     }
   }, [sheets.length]);
 
-  /* ── Clear all timers on unmount ── */
+  /* Clear all timers on unmount. */
   useEffect(
     () => () => {
       if (timerRef.current !== null) window.clearTimeout(timerRef.current);
@@ -312,9 +312,9 @@ export default function Home() {
     []
   );
 
-  /* ── Hydrate the email button on mount only (spam obfuscation). The
+  /* Hydrate the email button on mount only (spam obfuscation). The
      contact page renders once inside the book; the ref tracks that copy
-     and the selector is a safety net for any future duplicate. ── */
+     and the selector is a safety net for any future duplicate. */
   useEffect(() => {
     const mailto = getMailto();
     const hook = (b: HTMLButtonElement | null) => {

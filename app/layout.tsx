@@ -89,12 +89,19 @@ export default function RootLayout({
         {/* Preload project plates so they are decoded before the reader
             flips to each spread (plates are 3D-rotated off-screen at rest,
             so lazy loading never fires the IntersectionObserver in time). */}
-        <link rel="preload" as="image" href="/expend-plate.png" />
-        <link rel="preload" as="image" href="/invoiz-plate.png" />
-        <link rel="preload" as="image" href="/ledjer-plate.png" />
-        <link rel="preload" as="image" href="/zipto-plate.png" />
+        <link rel="preload" as="image" href="/expend-plate.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/invoiz-plate.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/ledjer-plate.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/zipto-plate.webp" type="image/webp" />
       </head>
       <body>
+        <noscript>
+          <p className="noscript-note">
+            This monograph turns its pages with JavaScript. With it off,
+            reach every project directly: expend.pages.dev, invois.pages.dev,
+            ledjer.id, zipto.pages.dev.
+          </p>
+        </noscript>
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>
@@ -102,7 +109,7 @@ export default function RootLayout({
           <span>&copy; 2026 Anggie Irawan</span>
         </footer>
 
-        {/* ═══ JSON-LD Structured Data ═══ */}
+        {/* JSON-LD structured data. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -123,7 +130,7 @@ export default function RootLayout({
                     "@type": "SoftwareApplication",
                     position: 1,
                     name: "Expend",
-                    description: "Offline-First Expense & Debt Tracker",
+                    description: "Chat-First Offline Expense Tracker",
                     applicationCategory: "FinanceApplication",
                     url: "https://expend.pages.dev",
                     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },

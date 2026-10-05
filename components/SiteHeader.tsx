@@ -45,7 +45,7 @@ export default function SiteHeader({
   const [open, setOpen] = useState(false);
   const scrollPos = useRef(0);
 
-  /* ── Mobile nav: iOS-safe body scroll lock ── */
+  /* Mobile nav: iOS-safe body scroll lock. */
   useEffect(() => {
     if (typeof document === "undefined") return;
     const body = document.body;
@@ -67,7 +67,7 @@ export default function SiteHeader({
     };
   }, [open]);
 
-  /* ── Close mobile nav on resize past breakpoint ── */
+  /* Close mobile nav on resize past breakpoint. */
   useEffect(() => {
     const onResize = () => {
       if (window.innerWidth >= 768) setOpen(false);

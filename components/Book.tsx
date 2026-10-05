@@ -309,9 +309,9 @@ export default function Book({
     ? "Cover"
     : `${String(current).padStart(2, "0")} / ${String(maxPage).padStart(2, "0")}`;
 
-  /* ── Single live region for the whole book. The visual indicator is plain
+  /* Single live region for the whole book. The visual indicator is plain
      text; this sr-only region announces the settled page (during a flip the
-     reader is still on `flip.from`, so nothing double-announces). ── */
+     reader is still on `flip.from`, so nothing double-announces). */
   const pageLabel = (id: string) =>
     id
       .split("-")
@@ -329,6 +329,7 @@ export default function Book({
       id="book-main"
       tabIndex={-1}
       aria-label="Portfolio book"
+      aria-keyshortcuts="ArrowRight ArrowLeft"
     >
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {announcement}
@@ -380,13 +381,17 @@ export default function Book({
                     onKeyDown={handleSheetKeyDown(i)}
                     onTransitionEnd={handleSheetTransitionEnd(i)}
                   >
-                    {/* Non-current faces are inert + hidden from the a11y
+                    {/* Non-current fronts are inert + hidden from the a11y
                         tree: their links can never receive keyboard focus.
                         (The sheet itself stays clickable — inert children
                         pass the hit through to it in Chromium/Firefox.
                         Note: the outgoing page becomes hidden mid-flip while
                         it may still hold focus — transient, input is locked
-                        and focus moves to the new heading at the end.) */}
+                        and focus moves to the new heading at the end.)
+                        Backs are never inert on purpose: no back face holds
+                        a link or button, so inert buys no tab-order safety
+                        there, and it blocks wheel and touch scrolling on the
+                        visible left page of the spread (the colophon). */}
                     <div
                       className="sheet-front"
                       inert={i !== current ? true : undefined}
@@ -394,7 +399,7 @@ export default function Book({
                     >
                       {sheet.front}
                     </div>
-                    <div className="sheet-back" inert aria-hidden="true">
+                    <div className="sheet-back" aria-hidden="true">
                       {sheet.back}
                     </div>
                   </div>
