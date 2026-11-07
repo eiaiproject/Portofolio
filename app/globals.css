@@ -991,7 +991,7 @@ main {
    is involved; the fade is opacity-only. */
 .book-fast .sheet,
 .book-fast .book {
-  transition: none !important;
+  transition: none;
 }
 
 .book-fast {
@@ -1852,59 +1852,6 @@ button:focus:not(:focus-visible) {
   border: 0;
 }
 
-/* Reduced motion. */
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  /* Book: no 3D rotation — flat pages swap with a 0.3s opacity crossfade. */
-  .book-wrap {
-    transform: none !important;
-    transition: none !important;
-  }
-
-  .book {
-    transform: none !important;
-    transition: none !important;
-  }
-
-  .sheet {
-    transform: none !important;
-    transition: opacity 0.3s ease !important;
-  }
-
-  .sheet:not(.sheet-current) {
-    opacity: 0 !important;
-    pointer-events: none;
-  }
-
-  .sheet-current {
-    opacity: 1 !important;
-    z-index: 30 !important;
-  }
-
-  .sheet-flipping .sheet-front::after,
-  .sheet-revealed .sheet-front::before {
-    animation: none !important;
-    opacity: 0 !important;
-  }
-
-  .site-nav {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-
 /* 404 / Not found. */
 
 .not-found-root {
@@ -1976,7 +1923,7 @@ button:focus:not(:focus-visible) {
   .book-controls,
   .book-shadow,
   .book-base {
-    display: none !important;
+    display: none;
   }
 
   main {
@@ -2002,6 +1949,7 @@ button:focus:not(:focus-visible) {
   }
 
   .book,
+  .book-wrap:not(.book-open) .book:hover,
   .sheet,
   .sheet-front,
   .sheet-back,
@@ -2014,7 +1962,7 @@ button:focus:not(:focus-visible) {
   .plate,
   .page-content {
     position: static;
-    transform: none !important;
+    transform: none;
   }
 
   .book {
@@ -2079,10 +2027,82 @@ button:focus:not(:focus-visible) {
     color: var(--ink);
   }
 
-  /* Linearized pages have no scrollport, so no bottom fade either. */
-  .book-project::after,
-  .book-frontmatter::after,
-  .book-colophon::after {
-    display: none !important;
+  /* Linearized pages have no scrollport, so no bottom fade either. Match the
+     `:has()` specificity of the screen rule so it wins on specificity alone. */
+  .book-project:has(.page-content.has-overflow)::after,
+  .book-frontmatter:has(.page-content.has-overflow)::after,
+  .book-colophon:has(.page-content.has-overflow)::after {
+    display: none;
+  }
+}
+
+/* Reduced motion. Kept last so every override below wins at equal
+   specificity. */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* `:root *` lifts the universal reset above the single-class transitions
+     used across the interface. Motion drops to one frame rather than zero,
+     so state changes still paint. */
+  :root *,
+  :root *::before,
+  :root *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+
+  /* Two-class rules that would otherwise keep their full timing. */
+  .site-nav .nav-links,
+  .site-nav .nav-links a,
+  .project-link:hover svg {
+    transition: none;
+  }
+
+  .project-link:hover svg {
+    transform: none;
+  }
+
+  /* Book: no 3D rotation — flat pages swap with a 0.3s opacity crossfade. */
+  .book-wrap,
+  .book-wrap.book-open,
+  .book,
+  .book-wrap:not(.book-open) .book:hover,
+  .sheet {
+    transform: none;
+  }
+
+  .book-wrap,
+  .book,
+  .sheet {
+    transition: none;
+  }
+
+  .sheet {
+    transition: opacity 0.3s ease;
+  }
+
+  .sheet:not(.sheet-current) {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sheet-current {
+    opacity: 1;
+    z-index: 30;
+  }
+
+  .sheet-flipping .sheet-front::after,
+  .sheet-revealed .sheet-front::before {
+    animation: none;
+    opacity: 0;
+  }
+
+  .site-nav {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
