@@ -2,7 +2,7 @@
  * Portfolio project data.
  *
  * Copy is kept in sync with the live GitHub repos under `eiaiproject`
- * (last audit: Oct 2026 — Expend, Invois, Ledjer, Zipto). Descriptions and
+ * (last audit: Nov 2026 — Expend, Invois, Ledjer, Kodingu). Descriptions and
  * stack lines mirror each repo's `package.json` + README; lessons stay in
  * the author's own voice.
  *
@@ -124,17 +124,17 @@ export const PROJECTS: Project[] = [
     "Ledjer brand card · wordmark on a warm cream background with wood-brown accents and feature list",
   ]),
   toProject([
-    "zipto",
-    "Zipto",
+    "kodingu",
+    "Kodingu",
     "Shipped",
-    "ZIP to Markdown Converter",
-    "Developers, writers, and analysts often need to extract text from ZIP archives without uploading sensitive files to a server. Zipto solves this by running all conversion locally in the browser as a private, offline-first PWA.",
-    ["Local processing", "No upload", "Privacy-first", "Works offline"],
-    "\u201CWeb Workers make CPU-intensive file conversion viable in the browser without blocking the UI or compromising on privacy.\u201D",
-    "Stack: React, TypeScript, Vite, Web Worker, fflate, Turndown, PapaParse, PWA",
-    "https://zipto.pages.dev",
+    "In-Browser Coding Lessons",
+    "Most coding courses bury the work behind video or a hosted sandbox. Kodingu makes the browser the classroom: 70 short lessons across HTML, CSS, and JavaScript, each with one idea, a quiz, and a code challenge that runs and checks locally, with no account, backend, or upload.",
+    ["3 courses", "70 lessons", "Live checks", "Works offline"],
+    "\u201CA static site can still teach: the browser\u2019s editor, storage, and service worker carry the whole learning loop without a server.\u201D",
+    "Stack: HTML, CSS, JavaScript (ES modules), Service Worker, localStorage, Playwright, Cloudflare Pages",
+    "https://kodingu.pages.dev",
     "View Live App",
-    "/zipto-plate.png",
-    "Zipto brand card · wordmark on a linen background with terracotta accents and feature list",
+    "/kodingu-plate.png",
+    "Kodingu brand card · wordmark on a linen background with terracotta accents and feature list",
   ]),
 ];
