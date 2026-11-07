@@ -37,20 +37,28 @@
    `100vh`; the `dvh` override (dynamic URL bar) only applies where supported
    (a custom-property redeclaration alone would not fall back at substitution). */
 @media (max-width: 1023px) {
+  /* Phones read edge to edge (1.5rem total side margin); the 420px cap only
+     binds on tablets, where it keeps the reading measure sane. The 205px
+     budget is the real chrome — nav 56 + page padding 24 + controls gap 40
+     + controls 45 + bottom padding 32 (safe areas subtracted separately) —
+     plus 8px of slack, so the book is as large as the screen allows and
+     the controls still sit above the fold. The width term also keeps a
+     3:4 fit as the minimum page shape; tall phones spend their extra
+     height on the page (see the fluid page rule below). */
   :root {
     --book-w: min(
-      88vw,
+      calc(100vw - 1.5rem),
       420px,
-      calc((100vh - 230px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 0.75)
+      calc((100vh - 205px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 0.75)
     );
   }
 
   @supports (height: 100dvh) {
     :root {
       --book-w: min(
-        88vw,
+        calc(100vw - 1.5rem),
         420px,
-        calc((100dvh - 230px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 0.75)
+        calc((100dvh - 205px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 0.75)
       );
     }
   }
@@ -61,6 +69,33 @@
 @media (max-width: 1023px) and (max-height: 520px) {
   :root {
     --book-w: min(88vw, 420px);
+  }
+}
+
+/* Fluid page height (phones): --book-w already fits a 3:4 page, so that
+   shape is the minimum; on taller phones the sheet takes the full height
+   left under the chrome instead of leaving a band of empty cream below the
+   book. Tablets keep 3:4 — their width is capped for the reading measure,
+   so stretching height alone would only distort the page — and
+   short/landscape screens keep the natural-scroll layout above. */
+@media (max-width: 767px) and (min-height: 521px) {
+  :root {
+    --book-h: calc(
+      100vh - 205px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+  }
+
+  @supports (height: 100dvh) {
+    :root {
+      --book-h: calc(
+        100dvh - 205px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+      );
+    }
+  }
+
+  .book-scene {
+    height: var(--book-h);
+    aspect-ratio: auto;
   }
 }
 
@@ -78,14 +113,24 @@
 }
 
 @media (min-width: 1024px) {
+  /* Full-screen book: one page is 3:4, so the open spread is 3:2. Size it
+     from the height left under the fixed header and above the control rail
+     (the budget must stay in sync with the desktop .book-page padding and
+     the .book-controls margin below). The width term only binds on tall,
+     narrow windows, where the spread would otherwise overflow sideways. */
   :root {
-    /* Height-capped so the book fits 100dvh − nav − chrome on short screens. */
-    --book-w: min(72vw, 460px, calc((100vh - 240px) * 0.75));
+    --book-w: min(
+      calc((100vw - 3rem) / 2),
+      calc((100vh - 164px) * 0.75)
+    );
   }
 
   @supports (height: 100dvh) {
     :root {
-      --book-w: min(72vw, 460px, calc((100dvh - 240px) * 0.75));
+      --book-w: min(
+        calc((100vw - 3rem) / 2),
+        calc((100dvh - 164px) * 0.75)
+      );
     }
   }
 }
@@ -275,7 +320,8 @@ body::before {
   }
 
   .site-nav .nav-brand {
-    padding: 8px 0;
+    /* Full 44px touch target (the wordmark is a home link). */
+    min-height: 44px;
   }
 
   .site-nav .nav-links {
@@ -326,6 +372,12 @@ body::before {
 
   .site-nav .nav-links li:last-child a {
     border-bottom: none;
+  }
+
+  /* Open panel is opaque: over the dark cover the frosted bar let the book
+     tint the menu links and muddied their contrast. */
+  .site-nav[data-open="true"] {
+    background: var(--bg);
   }
 }
 
@@ -864,6 +916,15 @@ main {
     calc(3.5rem + env(safe-area-inset-bottom));
 }
 
+/* Desktop: the book owns the screen. Chrome is cut to the minimum (nav,
+   12px of padding, the control rail) so the spread grows to the viewport
+   height; the height budget in --book-w above stays in sync with this. */
+@media (min-width: 1024px) {
+  .book-page {
+    padding: 0.75rem clamp(1rem, 3vw, 2.5rem) 0.75rem;
+  }
+}
+
 /* Mobile-first: chrome sized so book + controls fit one viewport (the
    height budget in --book-w above stays in sync). The controls live in
    their own wrapper, so the visible book↔controls gap comes from the
@@ -1008,6 +1069,16 @@ main {
   transform: rotateY(180deg);
 }
 
+/* Narrow screens show the recto page only, so the flipped stack's back faces
+   are off-frame decoration. Hiding them removes the strip of the previous
+   page that otherwise peeks out left of the spine. Screen only: the print
+   stylesheet linearizes every face. */
+@media screen and (max-width: 1023px) {
+  .sheet-back {
+    visibility: hidden;
+  }
+}
+
 /* Cover board is 3px larger than the paper sheets. */
 .sheet-cover .sheet-front {
   top: -3px;
@@ -1112,22 +1183,29 @@ main {
 }
 
 /* #3: ink fade at the bottom edge, only while the page has content below the
-   fold (class toggled by Book.tsx on flip, resize, and scroll). */
-.page-content.has-overflow::after {
+   fold (`.has-overflow` toggled by Book.tsx on flip, resize, and scroll).
+   The overlay sits on the page wrapper, not inside the scroll container: a
+   sticky pseudo-element inside `.page-content` is positioned at the end of
+   the content, so it only appeared once the reader had scrolled there. */
+.book-project:has(.page-content.has-overflow)::after,
+.book-frontmatter:has(.page-content.has-overflow)::after,
+.book-colophon:has(.page-content.has-overflow)::after {
   content: "";
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  bottom: 1px;
   height: 2.5rem;
-  background: linear-gradient(to top, var(--bg) 20%, transparent);
+  background: linear-gradient(to top, var(--bg) 25%, transparent);
   pointer-events: none;
+  z-index: 1;
 }
 
 .folio {
   position: absolute;
   right: 1.1rem;
   bottom: 0.85rem;
+  z-index: 2;
   font-family: var(--font-mono);
   font-size: 0.5rem;
   letter-spacing: 0.2em;
@@ -1753,6 +1831,14 @@ button:focus:not(:focus-visible) {
   outline-offset: 4px;
 }
 
+/* Scrollable page faces are tabbable (Chromium makes scroll containers
+   keyboard-focusable), so their focus mark belongs to the ink system too,
+   not the browser's blue default. */
+.page-content:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
 /* Screen reader only */
 .sr-only {
   position: absolute;
@@ -1991,5 +2077,12 @@ button:focus:not(:focus-visible) {
   .contact-actions .btn {
     border-color: var(--ink);
     color: var(--ink);
+  }
+
+  /* Linearized pages have no scrollport, so no bottom fade either. */
+  .book-project::after,
+  .book-frontmatter::after,
+  .book-colophon::after {
+    display: none !important;
   }
 }

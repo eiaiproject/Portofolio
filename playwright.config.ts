@@ -33,7 +33,9 @@ export default defineConfig({
   workers: 1,
   reporter: [
     ["list"],
-    ["html", { open: "never", outputFolder: "audit-report" }],
+    // Keep the report clear of outputDir (a nested folder makes Playwright
+    // warn that the report clears the artifact folder).
+    ["html", { open: "never", outputFolder: "audit-report/html" }],
     ["json", { outputFile: "audit-report/results.json" }],
   ],
   outputDir: "audit-report/test-results",

@@ -9,6 +9,7 @@ import {
   type MouseEvent,
   type PointerEvent,
   type ReactNode,
+  type TouchEvent,
   type TransitionEvent,
 } from "react";
 
@@ -50,6 +51,11 @@ type BookProps = Readonly<{
   /** Called when the flip animation actually ended (transitionend / jump
       timer) so the parent can release its input lock. Idempotent. */
   onFlipComplete: () => void;
+  /** Wide screens print a two-page spread, so the visible left page (the
+      back of the sheet before `current`) is real content: it must be
+      readable by assistive tech and scrollable by pointer. Narrow screens
+      show the recto only, so every back stays hidden and inert. */
+  exposeSpreadBack?: boolean;
 }>;
 
 const FLIP_MS = 1100;
@@ -70,6 +76,7 @@ export default function Book({
   flip,
   onFlip,
   onFlipComplete,
+  exposeSpreadBack = false,
 }: BookProps) {
   /* Transitions stay disabled until one frame after mount so a deep-linked
      initial state paints instantly instead of animating on load. */
@@ -83,6 +90,7 @@ export default function Book({
   const fastTimer = useRef<number | null>(null);
   const focusTimer = useRef<number | null>(null);
   const tapStart = useRef<{ x: number; y: number } | null>(null);
+  const swipeStart = useRef<{ x: number; y: number; at: number } | null>(null);
   const sheetEls = useRef<Map<string, HTMLElement>>(new Map());
 
   const maxPage = sheets.length - 1;
@@ -260,6 +268,33 @@ export default function Book({
   const isInteractiveTarget = (target: HTMLElement) =>
     !!target.closest("a, button");
 
+  /* Touch swipe: a horizontal drag across the book turns the page, the
+     primary mobile gesture. Vertical drags are left to the page's own
+     scroll, slow drags are selections, and a drag that starts on a link or
+     button belongs to that element. The click that follows a swipe is
+     already discarded by the tap guard above (it moved more than 10px). */
+  const handleTouchStart = (e: TouchEvent) => {
+    const t = e.touches[0];
+    if (!t) return;
+    swipeStart.current = { x: t.clientX, y: t.clientY, at: Date.now() };
+  };
+
+  const handleTouchEnd = (e: TouchEvent) => {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start || busy) return;
+    const t = e.changedTouches[0];
+    if (!t) return;
+    if (Date.now() - start.at > 800) return;
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) < 48) return;
+    if (Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    if (isInteractiveTarget(e.target as HTMLElement)) return;
+    if (dx < 0) onFlip(current + 1);
+    else onFlip(current - 1);
+  };
+
   /* Shared tap guard: links/buttons handle themselves, drags and text
      selections never navigate. */
   const shouldIgnoreClick = (e: MouseEvent) => {
@@ -343,13 +378,23 @@ export default function Book({
           className={`book-wrap${current > 0 ? " book-open" : ""}${fast ? " book-fast" : ""}`}
           data-ready={ready ? "true" : "false"}
         >
-          <div className="book-scene">
+          <div
+            className="book-scene"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={() => {
+              swipeStart.current = null;
+            }}
+          >
             <div className="book">
               {/* Static back board — peeks out 3px like a real hardcover. */}
               <div className="book-base" aria-hidden="true" />
 
               {sheets.map((sheet, i) => {
                 const flipped = i < current;
+                /* The left page of the open spread is the back of the sheet
+                   just before `current`: the only back that faces the reader. */
+                const backVisible = exposeSpreadBack && i === current - 1;
                 /* Z-index rule: flipped → i + 1, unflipped → sheets.length - i;
                    the mid-flip sheet is elevated above both stacks. */
                 let zIndex = sheets.length - i;
@@ -388,10 +433,12 @@ export default function Book({
                         Note: the outgoing page becomes hidden mid-flip while
                         it may still hold focus — transient, input is locked
                         and focus moves to the new heading at the end.)
-                        Backs are never inert on purpose: no back face holds
-                        a link or button, so inert buys no tab-order safety
-                        there, and it blocks wheel and touch scrolling on the
-                        visible left page of the spread (the colophon). */}
+                        Backs are inert unless they are the visible left page
+                        of the spread: inert there would block wheel and touch
+                        scrolling, but every other back sits behind the stack,
+                        where it would only collect invisible tab stops (a
+                        scrollable page face is keyboard-focusable) and expose
+                        hidden content to assistive tech. */}
                     <div
                       className="sheet-front"
                       inert={i !== current ? true : undefined}
@@ -399,7 +446,11 @@ export default function Book({
                     >
                       {sheet.front}
                     </div>
-                    <div className="sheet-back" aria-hidden="true">
+                    <div
+                      className="sheet-back"
+                      aria-hidden={backVisible ? undefined : "true"}
+                      inert={backVisible ? undefined : true}
+                    >
                       {sheet.back}
                     </div>
                   </div>
