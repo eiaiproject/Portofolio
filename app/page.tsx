@@ -295,7 +295,15 @@ export default function Home() {
      — clamp `current` back in range and cancel any in-flight flip toward
      the page that no longer exists. The clamp is a pure safety guard that
      only fires when the sheet count actually changed. */
+  const clampReadyRef = useRef(false);
   useEffect(() => {
+    /* Skip the mount pass: the mobile flag and its extra sheet are applied in
+       that same commit, so clamping against the base sheet count would pull a
+       deep-linked mobile contact page (last sheet) back onto the colophon. */
+    if (!clampReadyRef.current) {
+      clampReadyRef.current = true;
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrent((c) => Math.min(c, sheets.length - 1));
     if (flipRef.current && flipRef.current.to >= sheets.length) {
@@ -344,6 +352,7 @@ export default function Home() {
         flip={flip}
         onFlip={flipTo}
         onFlipComplete={finishFlip}
+        exposeSpreadBack={!isMobile}
       />
     </>
   );

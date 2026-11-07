@@ -92,14 +92,14 @@ export default function RootLayout({
         <link rel="preload" as="image" href="/expend-plate.webp" type="image/webp" />
         <link rel="preload" as="image" href="/invoiz-plate.webp" type="image/webp" />
         <link rel="preload" as="image" href="/ledjer-plate.webp" type="image/webp" />
-        <link rel="preload" as="image" href="/zipto-plate.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/kodingu-plate.webp" type="image/webp" />
       </head>
       <body>
         <noscript>
           <p className="noscript-note">
             This monograph turns its pages with JavaScript. With it off,
             reach every project directly: expend.pages.dev, invois.pages.dev,
-            ledjer.id, zipto.pages.dev.
+            ledjer.id, kodingu.pages.dev.
           </p>
         </noscript>
         <main id="main-content" tabIndex={-1}>
@@ -156,10 +156,10 @@ export default function RootLayout({
                   {
                     "@type": "SoftwareApplication",
                     position: 4,
-                    name: "Zipto",
-                    description: "ZIP to Markdown Converter · local-first PWA",
-                    applicationCategory: "DeveloperApplication",
-                    url: "https://zipto.pages.dev",
+                    name: "Kodingu",
+                    description: "In-Browser Coding Lessons · static learning site",
+                    applicationCategory: "EducationalApplication",
+                    url: "https://kodingu.pages.dev",
                     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
                   },
                 ],

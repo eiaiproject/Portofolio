@@ -156,12 +156,12 @@ function visualPages(viewport: "desktop" | "mobile"): void {
         await expect(page).toHaveScreenshot("desktop-ledjer.png");
       });
 
-      test("zipto", async ({ page }) => {
+      test("kodingu", async ({ page }) => {
         await navTo(page, "Work");
         for (let i = 0; i < 3; i++) {
           await clickNextAndWait(page);
         }
-        await expect(page).toHaveScreenshot("desktop-zipto.png");
+        await expect(page).toHaveScreenshot("desktop-kodingu.png");
       });
 
       test("capabilities (left of final spread)", async ({ page }) => {
@@ -349,6 +349,49 @@ test.describe("Functional — mobile menu", () => {
     const toggle = page.locator(".nav-toggle");
     const label = await toggle.getAttribute("aria-label");
     expect(label).toMatch(/menu/i);
+  });
+});
+
+// ── 3b. Functional — mobile gestures ───────────────────────────────
+
+/** Dispatch a real touch drag through CDP (Playwright has no swipe helper). */
+async function touchSwipe(
+  page: Page,
+  from: { x: number; y: number },
+  to: { x: number; y: number }
+): Promise<void> {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [from],
+  });
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [to],
+  });
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+  await cdp.detach();
+}
+
+test.describe("Functional — mobile gestures", () => {
+  test("swipe left turns the page forward", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "mobile only");
+    await boot(page);
+    const indicator = page.locator(".book-indicator");
+    await expect(indicator).toContainText(/cover/i);
+    await touchSwipe(page, { x: 320, y: 420 }, { x: 140, y: 425 });
+    await expect(indicator).not.toContainText(/cover/i);
+  });
+
+  test("vertical swipe does not turn the page", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "mobile only");
+    await boot(page);
+    const indicator = page.locator(".book-indicator");
+    await touchSwipe(page, { x: 200, y: 300 }, { x: 205, y: 560 });
+    await expect(indicator).toContainText(/cover/i);
   });
 });
 

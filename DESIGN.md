@@ -220,7 +220,7 @@ All interactive elements (buttons, links, nav items, copy button) meet 44×44px 
 
 8 sheets stacked. `current` = number of flipped sheets (0…7). Sheet 0's front is the cover; sheet 7's front is the dark closing contact page. All sheets stay mounted — content remains crawlable.
 
-Each project is a **2-page spread** (real-book model): its text page is the sheet's front (right page), and its image plate is printed on the BACK of the previous sheet (left page) — so on desktop the spread shows `[plate] + [text]` together. On mobile (≤1023px) the 3D book is replaced by a flat slide viewer: for sheets 3–7 the **left page is shown first** (project plate, or the colophon on the final spread), a tap slides to the right (text) page, and the next tap flips to the following sheet — which again lands on its left page (incoming plate animates with a page-turn-in). Cover / title / manifesto (and contact) have no pageable left content and show only the text page; the opening plate of a project is what defaults into view. Content **scrolls inside the page frame**, and the slide keeps the whole book + controls in one viewport.
+Each project is a **2-page spread** (real-book model): its text page is the sheet's front (right page), and its image plate is printed on the BACK of the previous sheet (left page) — so on desktop the spread shows `[plate] + [text]` together. On mobile (≤1023px) the same 3D book stays centered and shows the recto page only: each project text page carries a compact screenshot of its own (`.project-mobile-shot`), and the flipped stack's back faces are hidden, so no strip of the left page shows beside the spine. Cover, title, manifesto, colophon and contact each show their text page only. Content **scrolls inside the page frame**, and the book plus its controls fit one viewport.
 
 The book opens to a **cream title page** (brand mockup: Playfair names, mono "PORTFOLIO EST. 2026" label, italic tagline with arrow, vertical "A MONOGRAPH" spine note) before the Manifesto, and closes with a final spread `[Services + Workflow] + [Contact]` — the colophon content is printed on the back of the last project sheet, and the dark "LET'S SHIP V1." page is the book's last sheet (never flipped past).
 
@@ -231,8 +231,8 @@ The book opens to a **cream title page** (brand mockup: Playfair names, mono "PO
 | 2 | Manifesto / About (01) | Expend plate (02) |
 | 3 | Expend (02, compact text) | Invois plate (03) |
 | 4 | Invois (03) | Ledjer plate (04) |
-| 5 | Ledjer (04) | Zipto plate (05) |
-| 6 | Zipto (05) | Colophon content — Services + The Workflow (06) |
+| 5 | Ledjer (04) | Kodingu plate (05) |
+| 6 | Kodingu (05) | Colophon content — Services + The Workflow (06) |
 | 7 | Contact — "LET'S SHIP V1." dark closing page (07) | decorative (07) |
 
 ### Flip engine
@@ -243,15 +243,15 @@ The book opens to a **cream title page** (brand mockup: Playfair names, mono "PO
 - **Pitfall:** never put `overflow` on an element with `transform-style: preserve-3d` (it flattens the 3D context). Internal page scrolling lives on a plain 2D `.page-content` wrapper inside each face.
 - Z-index rule: flipped sheets → `i + 1`; unflipped → `sheets.length - i`; the mid-flip sheet is elevated above both stacks for the animation duration.
 - Cover front and the static `.book-base` back-board are 3px larger than the paper sheets (negative insets) so boards peek out like a real hardcover.
-- Geometry: the current page stays centered; on viewports ≥ 1024px the wrapper shifts 50% of book width once opened so the full 2-page spread centers.
-- **Mobile-first sizing:** `--book-w` is height-capped from `100dvh` (minus nav, page chrome, and controls) so book + controls fit one viewport without page scroll — `100vh` falls back on older iOS, and short screens (< 520px tall, landscape phones) drop the cap and scroll naturally. Safe-area insets keep the nav clear of the notch and the controls clear of the home indicator (`viewport-fit: cover`). `touch-action: manipulation` prevents double-tap zoom on the sheets and controls; a pointer-drag on a sheet (scroll attempt or text selection) never triggers a flip. Mobile pages read with **internal scroll**: type is comfortable (not squeezed to fit the frame), and `.page-content` scrolls when it overflows; desktop pages stay compact so the spread never scrolls.
+- Geometry: the current page stays centered; on viewports ≥ 1024px the wrapper shifts 50% of book width once opened so the full 2-page spread centers. The spread is screen-sized there: one page is 3:4, so the open spread is 3:2 and grows until it meets the viewport height left under the header and above the control rail, with a width cap for tall, narrow windows.
+- **Mobile-first sizing:** `--book-w` is height-capped from `100dvh` (minus nav, page chrome, and controls) so book + controls fit one viewport without page scroll. On phones the page runs edge to edge (`100vw` minus 1.5rem of side margin) and takes the full height left under the chrome: the width term already fits a 3:4 page, so 3:4 is the page's minimum shape and taller phones read a taller page that follows the device's reading area instead of leaving empty cream below. The 420px cap only binds on tablets, where it keeps the reading measure sane, so tablets keep 3:4 — `100vh` falls back on older iOS, and short screens (< 520px tall, landscape phones) drop the cap and scroll naturally. Safe-area insets keep the nav clear of the notch and the controls clear of the home indicator (`viewport-fit: cover`). `touch-action: manipulation` prevents double-tap zoom on the sheets and controls; a pointer-drag on a sheet (scroll attempt or text selection) never triggers a flip, and a horizontal touch drag across the book turns the page while vertical drags stay with the page scroll. Mobile pages read with **internal scroll**: type is comfortable (not squeezed to fit the frame), and `.page-content` scrolls when it overflows. Desktop pages share the same height budget but spend it on size (full-screen spread), so a page scrolls internally only if it outgrows the frame.
 - Input is locked during a flip (`isAnimating`, cleared after ~1100ms). Clicks, Prev/Next buttons, and ArrowLeft/ArrowRight all navigate; focus moves to the new page's heading after the flip lands.
 - All sheets stay in the DOM (SEO). The cover tilts `-4deg` on hover while closed (desktop only).
 - Reduced motion: no 3D rotation at all — flat pages swap with a 0.3s opacity crossfade; all controls and keyboard still work.
 
 ### Page → sheet index (nav + hashes)
 
-Cover 0 · Title 1 · About 2 · Work 3 · Capabilities/Process/Contact 7. Hashes `#cover`, `#title`, `#about`, `#work`, `#contact` deep-link on load; `#work` opens on the Expend plate, `#capabilities`/`#process` open on the colophon. On mobile the colophon (Services + The Workflow) is the left page of the final spread — reachable via the Capabilities / Process nav links or by flipping through.
+Cover 0 · Title 1 · About 2 · Work 3 · Capabilities/Process/Contact 7. Hashes `#cover`, `#title`, `#about`, `#work`, `#contact` deep-link on load; `#work` opens on the Expend plate, `#capabilities`/`#process` open on the colophon. On mobile the colophon (Services + The Workflow) is its own recto page just before contact, one sheet longer than the desktop book, reachable via the Capabilities / Process nav links or by flipping through.
 
 ### Deviations to verify visually
 
@@ -272,3 +272,5 @@ Reading this as: printed-monograph portfolio in interactive book form for founde
 - Justified prose: explanatory paragraphs (manifesto, project description) are justified with hyphenation off, following the print-monograph convention for body text; words never break and the looser spacing is accepted. Colophon columns stay left-aligned, their measure too narrow for even spacing.
 - Balanced lede wrap: the mono standfirst uses balanced wrapping so its lines break evenly instead of stranding one word on the last line.
 - Desktop control breathing room: the Prev/Next cluster carries its own top margin on wide screens so it clears the book shadow; horizontal rhythm unchanged.
+- Full-screen book: from 1024px up the spread is sized to the viewport height under the header and above the control rail (page 3:4 makes the spread 3:2), because a 460px-wide book read as a small card floating in cream rather than a page you sit down with.
+- Mobile reach: phones read edge to edge and the page follows the device's reading area, with 3:4 as its minimum shape (tall phones spend the extra height on the page; tablets stay 3:4 for measure); the height budget matches the real chrome plus 8px of slack, so the controls stay above the fold, and horizontal swipes turn pages so the thumb never has to find the rail.
